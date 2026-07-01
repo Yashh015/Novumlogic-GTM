@@ -5,3 +5,7 @@ node_modules/
 __pycache__/
 *.pyc
 .DS_Store
+# Never expose raw data files to GitHub
+dashboard_data.json
+*.csv
+update_data.py

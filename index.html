@@ -718,7 +718,15 @@
                     return;
                 }
                 
-                if (!res.ok) throw new Error("Failed to load data from Vercel API");
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('loginScreen').style.display = 'flex';
+                    const errorDiv = document.getElementById('loginError');
+                    errorDiv.style.display = 'block';
+                    errorDiv.innerText = errData.error || "Failed to load data from Vercel API";
+                    return;
+                }
                 
                 // Success: Hide login, show dashboard
                 document.getElementById('loginScreen').style.display = 'none';
