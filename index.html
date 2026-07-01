@@ -720,19 +720,21 @@
             <!-- CAMPAIGN BREAKDOWN -->
             <div style="margin: 40px 0 32px;">
                 <h2 class="section-title" style="color:var(--color-white); margin-bottom: 20px;">Campaign Breakdown</h2>
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Campaign Name</th>
-                                <th>Status</th>
-                                <th style="text-align: right;">Sent</th>
-                                <th style="text-align: right;">Opened</th>
-                                <th style="text-align: right;">Replied</th>
-                            </tr>
-                        </thead>
-                        <tbody id="slCampaignCards"></tbody>
-                    </table>
+                <div class="table-container" style="border-color: var(--color-charcoal-mist); background: var(--color-midnight-ink);">
+                    <div class="table-scroll" style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead style="background: var(--color-charcoal);">
+                                <tr>
+                                    <th style="background: transparent; color: var(--color-smoke); border-bottom-color: var(--color-charcoal-mist);">Campaign Name</th>
+                                    <th style="background: transparent; color: var(--color-smoke); border-bottom-color: var(--color-charcoal-mist);">Status</th>
+                                    <th style="background: transparent; color: var(--color-smoke); border-bottom-color: var(--color-charcoal-mist); text-align: right;">Sent</th>
+                                    <th style="background: transparent; color: var(--color-smoke); border-bottom-color: var(--color-charcoal-mist); text-align: right;">Opened</th>
+                                    <th style="background: transparent; color: var(--color-smoke); border-bottom-color: var(--color-charcoal-mist); text-align: right;">Replied</th>
+                                </tr>
+                            </thead>
+                            <tbody id="slCampaignCards"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -1344,11 +1346,11 @@
                 const rRate = c.sent_count ? ((c.reply_count / c.sent_count) * 100).toFixed(1) : 0;
                 const statusColor = c.status === 'ACTIVE' ? '#2a9d8f' : c.status === 'PAUSED' ? '#e9c46a' : '#888';
                 return `
-                    <tr>
-                        <td style="color:var(--color-white); font-weight:500;">${c.name}</td>
-                        <td><span class="badge" style="background:${statusColor}22; color:${statusColor}; border:1px solid ${statusColor}44;">${c.status}</span></td>
-                        <td style="text-align: right; color:var(--color-white); font-weight: 500;">${c.sent_count.toLocaleString()}</td>
-                        <td style="text-align: right;">
+                    <tr style="border-bottom: 1px solid var(--color-charcoal-mist);">
+                        <td style="color:var(--color-white); font-weight:500; border-bottom: 1px solid var(--color-charcoal-mist);">${c.name}</td>
+                        <td style="border-bottom: 1px solid var(--color-charcoal-mist);"><span class="badge" style="background:${statusColor}22; color:${statusColor}; border:1px solid ${statusColor}44;">${c.status}</span></td>
+                        <td style="text-align: right; color:var(--color-white); font-weight: 500; border-bottom: 1px solid var(--color-charcoal-mist);">${c.sent_count.toLocaleString()}</td>
+                        <td style="text-align: right; border-bottom: 1px solid var(--color-charcoal-mist);">
                             <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                                 <div style="color:#2a9d8f; font-weight:600; font-size: 14px;">${c.open_count.toLocaleString()}</div>
                                 <div style="font-size:12px; color:var(--color-graphite-veil); min-width:40px;">${rate}%</div>
@@ -1357,7 +1359,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td style="text-align: right;">
+                        <td style="text-align: right; border-bottom: 1px solid var(--color-charcoal-mist);">
                             <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                                 <div style="color:#e9c46a; font-weight:600; font-size: 14px;">${c.reply_count.toLocaleString()}</div>
                                 <div style="font-size:12px; color:var(--color-graphite-veil); min-width:40px;">${rRate}%</div>
