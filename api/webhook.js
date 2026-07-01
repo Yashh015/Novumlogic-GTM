@@ -265,6 +265,57 @@ export default async function handler(req, res) {
 
     console.log(`✅ master_leads synced for ${leadEmail}`);
 
+    // ── 6. Update smartlead_campaign_leads (export table) ─────
+    if (campaignId) {
+      const exportTableUpdates = { status: newStatus, updated_at: now };
+      if (newStatus === 'Opened') exportTableUpdates.is_opened = true;
+      if (newStatus === 'Clicked') exportTableUpdates.is_clicked = true;
+      if (newStatus === 'Replied') exportTableUpdates.is_replied = true;
+      if (newStatus === 'Bounced') exportTableUpdates.is_bounced = true;
+      if (newStatus === 'Unsubscribed') exportTableUpdates.is_unsubscribed = true;
+      
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/smartlead_campaign_leads?email=eq.${encodeURIComponent(leadEmail)}&campaign_id=eq.${campaignId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(exportTableUpdates)
+        }
+      );
+      console.log(`✅ smartlead_campaign_leads synced for ${leadEmail}`);
+    }
+
+    // ── 7. Autofill global_blacklist if bounced/unsubscribed ─────
+    if (isBlacklisted) {
+      const blacklistPayload = {
+        email: leadEmail,
+        company_name: slLead.company_name || companyData.company_name || null,
+        domain: domainToLookup || null,
+        reason: newStatus === 'Bounced' ? 'Email Bounced' : 'Unsubscribed via Smartlead',
+        source: 'Smartlead Webhook'
+      };
+      
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/global_blacklist`,
+        {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=ignore-duplicates,return=minimal'
+          },
+          body: JSON.stringify(blacklistPayload)
+        }
+      );
+      console.log(`✅ Added ${leadEmail} to global_blacklist`);
+    }
+
   } catch (err) {
     console.error('Webhook fatal error:', err);
   }
