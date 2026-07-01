@@ -2,7 +2,14 @@ export default async function handler(req, res) {
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_KEY = process.env.SUPABASE_KEY;
   const SMARTLEAD_API_KEY = process.env.SMARTLEAD_API_KEY;
+  const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || 'Novum2026';
   const BASE_URL = "https://server.smartlead.ai/api/v1";
+
+  // Check authentication
+  const authHeader = req.headers['x-dashboard-auth'];
+  if (authHeader !== DASHBOARD_PASSWORD) {
+    return res.status(401).json({ error: "Unauthorized. Incorrect password." });
+  }
 
   if (!SUPABASE_URL || !SUPABASE_KEY || !SMARTLEAD_API_KEY) {
     return res.status(500).json({ error: "Missing required environment variables" });

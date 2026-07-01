@@ -408,6 +408,19 @@
     </style>
 </head>
 <body>
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" style="display: flex; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--color-cream-paper); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+        <div style="background: var(--color-white); padding: 48px; border-radius: var(--radius-cards); box-shadow: 0 4px 24px rgba(0,0,0,0.05); text-align: center; max-width: 400px; width: 100%;">
+            <h1 class="display-title" style="font-size: 32px; margin-bottom: 8px;"><span>Novumlogic</span></h1>
+            <p class="subheading" style="margin-bottom: 32px;">Please enter the master password to access the dashboard.</p>
+            <input type="password" id="loginPassword" class="filter-input" placeholder="Enter password..." style="width: 100%; margin-bottom: 16px; padding: 12px 16px; border-radius: var(--radius-buttons); border: 1px solid var(--color-stone-mist); font-size: 16px;">
+            <button onclick="attemptLogin()" class="btn-primary" style="width: 100%; justify-content: center; padding: 14px;">Unlock Dashboard</button>
+            <div id="loginError" style="color: #e63946; margin-top: 16px; display: none; font-size: 14px; font-weight: 500;">Incorrect password.</div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboardApp" style="display: none;">
     <div id="loading" class="loading">Loading Intelligence...</div>
 
     <div class="nav-container">
@@ -690,9 +703,27 @@
 
         async function init() {
             try {
+                const pwd = sessionStorage.getItem('dashboardPwd');
+                
                 // Fetch live data securely from Vercel API
-                const res = await fetch('/api/data');
+                const res = await fetch('/api/data', {
+                    headers: { 'x-dashboard-auth': pwd || '' }
+                });
+                
+                if (res.status === 401) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('loginScreen').style.display = 'flex';
+                    document.getElementById('dashboardApp').style.display = 'none';
+                    if (pwd) document.getElementById('loginError').style.display = 'block';
+                    return;
+                }
+                
                 if (!res.ok) throw new Error("Failed to load data from Vercel API");
+                
+                // Success: Hide login, show dashboard
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboardApp').style.display = 'block';
+
                 DATA = await res.json();
                 
                 // Removed the filter that hides leads with no name so we don't hide opened emails
@@ -1274,7 +1305,21 @@
             window[document.getElementById(containerId).dataset.renderFn]();
         }
 
+        async function attemptLogin() {
+            const pwd = document.getElementById('loginPassword').value;
+            if (!pwd) return;
+            document.getElementById('loginError').style.display = 'none';
+            sessionStorage.setItem('dashboardPwd', pwd);
+            await init();
+        }
+
+        // Catch enter key on password input
+        document.getElementById('loginPassword').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') attemptLogin();
+        });
+
         init();
     </script>
+    </div> <!-- END dashboardApp -->
 </body>
 </html>
