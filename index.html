@@ -408,8 +408,13 @@
     </style>
 </head>
 <body>
+    <!-- INITIAL LOADING VEIL (shown while auto-checking saved password) -->
+    <div id="authVeil" style="display: flex; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--color-cream-paper); z-index: 10000; justify-content: center; align-items: center;">
+        <p class="subheading" style="font-size: 18px;">Loading…</p>
+    </div>
+
     <!-- LOGIN SCREEN -->
-    <div id="loginScreen" style="display: flex; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--color-cream-paper); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+    <div id="loginScreen" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--color-cream-paper); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
         <div style="background: var(--color-white); padding: 48px; border-radius: var(--radius-cards); box-shadow: 0 4px 24px rgba(0,0,0,0.05); text-align: center; max-width: 400px; width: 100%;">
             <h1 class="display-title" style="font-size: 32px; margin-bottom: 8px;"><span>Novumlogic</span></h1>
             <p class="subheading" style="margin-bottom: 32px;">Please enter the master password to access the dashboard.</p>
@@ -703,7 +708,7 @@
 
         async function init() {
             try {
-                const pwd = sessionStorage.getItem('dashboardPwd');
+                const pwd = localStorage.getItem('dashboardPwd');
                 
                 // Fetch live data securely from Vercel API
                 const res = await fetch('/api/data', {
@@ -711,6 +716,7 @@
                 });
                 
                 if (res.status === 401) {
+                    document.getElementById('authVeil').style.display = 'none';
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('loginScreen').style.display = 'flex';
                     document.getElementById('dashboardApp').style.display = 'none';
@@ -728,7 +734,8 @@
                     return;
                 }
                 
-                // Success: Hide login, show dashboard
+                // Success: Hide veil & login, show dashboard
+                document.getElementById('authVeil').style.display = 'none';
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('dashboardApp').style.display = 'block';
 
@@ -1317,7 +1324,7 @@
             const pwd = document.getElementById('loginPassword').value;
             if (!pwd) return;
             document.getElementById('loginError').style.display = 'none';
-            sessionStorage.setItem('dashboardPwd', pwd);
+            localStorage.setItem('dashboardPwd', pwd);
             await init();
         }
 
