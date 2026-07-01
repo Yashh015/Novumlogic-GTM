@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novumlogic GTM</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            /* Wispr Flow Theme Tokens */
+            --color-cream-paper: #ffffeb;
+            --color-midnight-ink: #1a1a1a;
+            --color-pure-black: #000000;
+            --color-white: #ffffff;
+            --color-stone-mist: #e4e4d0;
+            --color-graphite-veil: #8a8a80;
+            --color-smoke: #5f5f59;
+            --color-charcoal: #222222;
+            --color-charcoal-mist: #333333;
+            --color-deep-forest-teal: #034f46;
+            --color-lavender-whisper: #f0d7ff;
+            --color-amber-pulse: #ffa946;
+
+            --font-figtree: 'Figtree', sans-serif;
+            --font-eb-garamond: 'EB Garamond', serif;
+
+            --radius-nav: 14px;
+            --radius-cards: 32px;
+            --radius-buttons: 14px;
+            --radius-badges: 1000px;
+            --radius-smallbadges: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-figtree);
+            background-color: var(--color-cream-paper);
+            color: var(--color-midnight-ink);
+            line-height: 1.3;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--color-midnight-ink);
+        }
+        .display-title {
+            font-family: var(--font-eb-garamond);
+            font-size: 64px;
+            font-weight: 400;
+            line-height: 0.95;
+            letter-spacing: -0.05em;
+            margin-bottom: 16px;
+        }
+        .display-title span {
+            color: var(--color-graphite-veil);
+        }
+        .subheading {
+            font-size: 20px;
+            font-weight: 400;
+            color: var(--color-smoke);
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+        .section-light {
+            background-color: var(--color-cream-paper);
+            padding: 64px 0;
+        }
+        .section-dark {
+            background-color: var(--color-midnight-ink);
+            color: var(--color-white);
+            padding: 80px 0;
+        }
+        .section-dark h1, .section-dark h2, .section-dark h3, .section-dark .subheading {
+            color: var(--color-white);
+        }
+
+        /* Navigation */
+        .nav-container {
+            position: sticky;
+            top: 24px;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 48px;
+        }
+        .nav-bar {
+            background: var(--color-white);
+            border: 1px solid var(--color-stone-mist);
+            border-radius: var(--radius-nav);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+        .nav-brand {
+            font-weight: 700;
+            font-size: 16px;
+            padding: 0 16px 0 8px;
+            border-right: 1px solid var(--color-stone-mist);
+            margin-right: 8px;
+        }
+        .nav-item {
+            font-family: var(--font-figtree);
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--color-smoke);
+            background: transparent;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-item:hover {
+            color: var(--color-midnight-ink);
+            background: var(--color-stone-mist);
+        }
+        .nav-item.active {
+            background: var(--color-midnight-ink);
+            color: var(--color-white);
+        }
+
+        /* Components */
+        .card {
+            background: var(--color-white);
+            border: 1px solid var(--color-stone-mist);
+            border-radius: var(--radius-cards);
+            padding: 32px;
+        }
+        .card-dark {
+            background: var(--color-charcoal);
+            border: 1px solid var(--color-charcoal-mist);
+            border-radius: var(--radius-cards);
+            padding: 32px;
+        }
+
+        .btn-primary {
+            background: var(--color-lavender-whisper);
+            color: var(--color-midnight-ink);
+            border: 1px solid var(--color-midnight-ink);
+            border-radius: var(--radius-buttons);
+            padding: 10px 18px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--color-midnight-ink);
+            border: 1px solid var(--color-midnight-ink);
+            border-radius: var(--radius-buttons);
+            padding: 10px 18px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-ghost:hover {
+            background: var(--color-stone-mist);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: var(--radius-badges);
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--color-stone-mist);
+            color: var(--color-midnight-ink);
+        }
+        .badge.teal {
+            background: var(--color-deep-forest-teal);
+            color: var(--color-white);
+        }
+        .badge.lavender {
+            background: var(--color-lavender-whisper);
+            color: var(--color-midnight-ink);
+        }
+        .badge.amber {
+            background: rgba(255, 169, 70, 0.2);
+            color: #d97706;
+        }
+        .badge.rose {
+            background: rgba(251, 113, 133, 0.15);
+            color: #e11d48;
+        }
+
+        /* Tabs Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Grid Layouts */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+        .stat-card {
+            background: var(--color-white);
+            border: 1px solid var(--color-stone-mist);
+            border-radius: 24px;
+            padding: 24px;
+        }
+        .stat-card-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-graphite-veil);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .stat-card-value {
+            font-size: 40px;
+            font-family: var(--font-eb-garamond);
+            line-height: 1;
+            color: var(--color-midnight-ink);
+        }
+        .stat-card-dark {
+            background: var(--color-charcoal);
+            border-color: var(--color-charcoal-mist);
+        }
+        .stat-card-dark .stat-card-value { color: var(--color-white); }
+        .stat-card-dark .stat-card-label { color: var(--color-graphite-veil); }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        /* Filters Bar */
+        .checkbox-group {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--color-stone-mist);
+            border-radius: 12px;
+            padding: 8px;
+            background: var(--color-white);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--color-midnight-ink);
+            cursor: pointer;
+        }
+        .checkbox-item input {
+            accent-color: var(--color-lavender-whisper);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .filters-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: center;
+            background: var(--color-white);
+            padding: 16px 24px;
+            border-radius: 20px;
+            border: 1px solid var(--color-stone-mist);
+            flex-wrap: wrap;
+        }
+        .filter-input, .filter-select {
+            font-family: var(--font-figtree);
+            font-size: 14px;
+            padding: 10px 16px;
+            border: 1px solid var(--color-stone-mist);
+            border-radius: 12px;
+            background: var(--color-white);
+            color: var(--color-midnight-ink);
+            outline: none;
+            width: 100%;
+        }
+        .filter-input:focus, .filter-select:focus {
+            border-color: var(--color-midnight-ink);
+        }
+
+        /* Tables */
+        .table-container {
+            background: var(--color-white);
+            border: 1px solid var(--color-stone-mist);
+            border-radius: var(--radius-cards);
+            overflow: hidden;
+            margin-bottom: 64px;
+        }
+        .table-scroll {
+            overflow-x: auto;
+            max-height: 700px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: left;
+        }
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        th {
+            background: var(--color-cream-paper);
+            color: var(--color-graphite-veil);
+            font-weight: 600;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--color-stone-mist);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--color-stone-mist);
+            color: var(--color-smoke);
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: var(--color-cream-paper); }
+        .section-dark tr:hover td { background-color: var(--color-charcoal); }
+        
+        .td-primary {
+            color: var(--color-midnight-ink);
+            font-weight: 500;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 24px;
+            border-top: 1px solid var(--color-stone-mist);
+            background: var(--color-cream-paper);
+        }
+        .page-btn {
+            background: var(--color-white);
+            border: 1px solid var(--color-stone-mist);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-figtree);
+            color: var(--color-smoke);
+        }
+        .page-btn.active {
+            background: var(--color-midnight-ink);
+            color: var(--color-white);
+            border-color: var(--color-midnight-ink);
+        }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .loading {
+            position: fixed;
+            inset: 0;
+            background: var(--color-cream-paper);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-family: var(--font-eb-garamond);
+            font-size: 32px;
+            color: var(--color-midnight-ink);
+            transition: opacity 0.5s;
+        }
+        .loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">Loading Intelligence...</div>
+
+    <div class="nav-container">
+        <nav class="nav-bar">
+            <div class="nav-brand">Novumlogic GTM</div>
+            <button class="nav-item active" onclick="switchTab('tab-companies')">Companies</button>
+            <button class="nav-item" onclick="switchTab('tab-people')">People</button>
+            <button class="nav-item" onclick="switchTab('tab-smartlead')">Smartlead</button>
+            <button class="nav-item" onclick="switchTab('tab-future')">Future Leads</button>
+        </nav>
+    </div>
+
+    <!-- TAB: COMPANIES -->
+    <main id="tab-companies" class="tab-content active container section-light">
+        <div style="display: flex; gap: 48px; align-items: flex-start;">
+            
+            <!-- LEFT SIDEBAR -->
+            <aside style="width: 280px; flex-shrink: 0; position: sticky; top: 100px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--color-stone-mist); padding-bottom: 12px;">
+                    <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--color-graphite-veil); margin: 0;">Filters</h3>
+                    <button class="btn-ghost" style="padding: 4px 8px; font-size: 12px;" onclick="resetCompanyFilters()">Reset Filters</button>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Company Search</label>
+                    <input type="text" id="compSearchSide" class="filter-input" placeholder="e.g. Nike, nike.com" oninput="syncAndFilterCompanies('side')">
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Website Keywords</label>
+                    <input type="text" id="compKwSide" class="filter-input" placeholder="e.g. software, logistics" oninput="syncAndFilterCompanies('side')">
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Industry</label>
+                    <div class="checkbox-group" id="compIndustrySide"></div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Employee Size</label>
+                    <div class="checkbox-group" id="compEmployeeSide"></div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Annual Revenue</label>
+                    <div class="checkbox-group" id="compRevenueSide"></div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Email Coverage</label>
+                    <select id="compCoverageSide" class="filter-select" onchange="syncAndFilterCompanies('side')">
+                        <option value="">Any Coverage</option>
+                        <option value="has_emails">Has Emails Available</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Sent Status</label>
+                    <select id="compSentSide" class="filter-select" onchange="syncAndFilterCompanies('side')">
+                        <option value="">Any Status</option>
+                        <option value="not_sent">Not Contacted Yet</option>
+                        <option value="sent">Already Contacted</option>
+                    </select>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <div style="flex: 1;">
+                
+                <!-- INITIAL STATE (Search First) -->
+                <div id="compInitialState" style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 64px;">
+                    <h1 class="display-title" style="font-size: 48px; margin-bottom: 8px;">Find Your Target <span style="color: var(--color-graphite-veil);">Companies</span> Here</h1>
+                    <p class="subheading" style="margin-bottom: 40px;">Discover companies using input or use filters for standard search.</p>
+                    
+                    <div style="display: flex; gap: 8px; width: 100%; max-width: 600px; margin-bottom: 64px;">
+                        <input type="text" id="compSearchCenter" class="filter-input" style="flex: 1; font-size: 16px; padding: 16px 24px; border-radius: 16px;" placeholder="e.g. Nike, nike.com" oninput="syncAndFilterCompanies('center')" onkeydown="if(event.key === 'Enter') { document.getElementById('compSearchSide').focus(); }">
+                        <button class="btn-primary" style="padding: 16px 32px; border-radius: 16px; font-size: 16px;" onclick="syncAndFilterCompanies('center')">Search</button>
+                    </div>
+
+                    <div class="stats-grid" style="width: 100%; max-width: 800px; gap: 24px; grid-template-columns: repeat(3, 1fr);" id="compInitialStats">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- RESULTS STATE -->
+                <div id="compResultsState" style="display: none;">
+                    <div class="stats-grid" id="compStatsGrid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 32px;"></div>
+                    
+                    <div class="table-container">
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Company</th>
+                                        <th>Domain</th>
+                                        <th>Industry</th>
+                                        <th>Total Leads</th>
+                                        <th>With Email</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="compTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="pagination" id="compPagination"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- TAB: PEOPLE -->
+    <main id="tab-people" class="tab-content container section-light">
+        <div style="display: flex; gap: 48px; align-items: flex-start;">
+            
+            <!-- LEFT SIDEBAR -->
+            <aside style="width: 280px; flex-shrink: 0; position: sticky; top: 100px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--color-stone-mist); padding-bottom: 12px;">
+                    <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--color-graphite-veil); margin: 0;">Filters</h3>
+                    <button class="btn-ghost" style="padding: 4px 8px; font-size: 12px;" onclick="resetPeopleFilters()">Reset Filters</button>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Person Search</label>
+                    <input type="text" id="pplSearchSide" class="filter-input" placeholder="Name, Email, Domain" oninput="syncAndFilterPeople('side')">
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Website Keywords</label>
+                    <input type="text" id="pplKwSide" class="filter-input" placeholder="e.g. software, logistics" oninput="syncAndFilterPeople('side')">
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Persona Type</label>
+                    <div class="checkbox-group" id="pplPersonaSide"></div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Data Source</label>
+                    <div class="checkbox-group" id="pplSourceSide"></div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Email Status</label>
+                    <select id="pplEmailSide" class="filter-select" onchange="syncAndFilterPeople('side')">
+                        <option value="">Any Status</option>
+                        <option value="has_email">Has Verified Email</option>
+                        <option value="no_email">Missing Email (Enrich)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Sent Status</label>
+                    <select id="pplSentSide" class="filter-select" onchange="syncAndFilterPeople('side')">
+                        <option value="">Any Status</option>
+                        <option value="not_sent">Not Contacted Yet</option>
+                        <option value="sent">Already Contacted</option>
+                    </select>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <div style="flex: 1;">
+                
+                <!-- INITIAL STATE (Search First) -->
+                <div id="pplInitialState" style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 64px;">
+                    <h1 class="display-title" style="font-size: 48px; margin-bottom: 8px;">Find Your Target <span style="color: var(--color-graphite-veil);">People</span> Here</h1>
+                    <p class="subheading" style="margin-bottom: 40px;">Search through 15,000+ deduplicated individuals or use standard filters.</p>
+                    
+                    <div style="display: flex; gap: 8px; width: 100%; max-width: 600px; margin-bottom: 64px;">
+                        <input type="text" id="pplSearchCenter" class="filter-input" style="flex: 1; font-size: 16px; padding: 16px 24px; border-radius: 16px;" placeholder="Name, Email, Domain" oninput="syncAndFilterPeople('center')" onkeydown="if(event.key === 'Enter') { document.getElementById('pplSearchSide').focus(); }">
+                        <button class="btn-primary" style="padding: 16px 32px; border-radius: 16px; font-size: 16px;" onclick="syncAndFilterPeople('center')">Search</button>
+                    </div>
+
+                    <div class="stats-grid" style="width: 100%; max-width: 900px; gap: 24px; grid-template-columns: repeat(4, 1fr);" id="pplInitialStats">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- RESULTS STATE -->
+                <div id="pplResultsState" style="display: none;">
+                    <div class="stats-grid" id="peopleStatsGrid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 32px;"></div>
+                    
+                    <div class="table-container">
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Job Title</th>
+                                        <th>Company Domain</th>
+                                        <th>Email</th>
+                                        <th>Source</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pplTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="pagination" id="pplPagination"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- TAB: SMARTLEAD -->
+    <main id="tab-smartlead" class="tab-content section-dark">
+        <div class="container">
+            <h1 class="display-title" style="color:var(--color-white)"><span>Campaign</span> Intelligence</h1>
+            <p class="subheading" style="margin-bottom: 48px; color:var(--color-smoke)">Live analytics and tracking from your Smartlead campaigns.</p>
+            
+            <div class="stats-grid" id="slStatsGrid"></div>
+
+            <div class="filters-bar" style="margin-bottom: 24px; border: 1px solid var(--color-charcoal-mist);">
+                <select id="slOpenedFilter" class="filter-select" style="width: 250px; background: var(--color-midnight-ink); color: var(--color-white);" onchange="filterSmartlead()">
+                    <option value="">All Contacted Leads</option>
+                    <option value="opened">Opened Email</option>
+                    <option value="clicked">Clicked Email</option>
+                    <option value="replied">Replied Email</option>
+                </select>
+            </div>
+
+            <div class="table-container" style="border-color: var(--color-charcoal-mist); background: var(--color-midnight-ink);">
+                <div class="table-scroll">
+                    <table>
+                        <thead style="background: var(--color-charcoal); border-bottom: 1px solid var(--color-charcoal-mist);">
+                            <tr>
+                                <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Contacted Email</th>
+                                <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Company & LinkedIn</th>
+                                <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Campaign Name</th>
+                                <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="slTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="slPagination" style="background: var(--color-charcoal); border-top: 1px solid var(--color-charcoal-mist);"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- TAB: FUTURE LEADS -->
+    <main id="tab-future" class="tab-content container section-light">
+        <h1 class="display-title"><span>Future</span> Pipelines</h1>
+        <p class="subheading" style="margin-bottom: 48px;">Safe, pre-filtered leads ready for your next campaign (Excludes Blacklist & Already Contacted).</p>
+        
+        <div class="filters-bar">
+            <input type="text" id="futSearch" class="filter-input" style="width:300px" placeholder="Search ready leads..." oninput="filterFuture()">
+        </div>
+
+        <div class="table-container">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Job Title</th>
+                            <th>Company Domain</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody id="futTableBody"></tbody>
+                </table>
+            </div>
+            <div class="pagination" id="futPagination"></div>
+        </div>
+    </main>
+
+    <script>
+        let DATA = null;
+        const PAGE_SIZE = 50;
+
+        // State
+        let compState = { data: [], page: 1 };
+        let pplState = { data: [], page: 1 };
+        let slState = { data: [], page: 1, baseData: [] };
+        let futState = { data: [], page: 1 };
+
+        async function init() {
+            try {
+                // Fetch live data securely from Vercel API
+                const res = await fetch('/api/data');
+                if (!res.ok) throw new Error("Failed to load data from Vercel API");
+                DATA = await res.json();
+                
+                // Removed the filter that hides leads with no name so we don't hide opened emails
+                // DATA.leads = DATA.leads.filter(l => (l.first_name || '').trim() !== '' || (l.last_name || '').trim() !== '');
+
+                // Format sources to remove 'raw_' prefix globally
+                DATA.leads.forEach(l => {
+                    if (l.source) l.source = l.source.replace(/^raw_/, '');
+                });
+                DATA.companies.forEach(c => {
+                    if (c.source) c.source = c.source.replace(/^raw_/, '');
+                });
+
+                // Update stats based on filtered leads
+                DATA.stats.total_leads = DATA.leads.length;
+                DATA.stats.without_email = DATA.leads.filter(l => !l.has_email).length;
+                DATA.stats.with_email = DATA.leads.filter(l => l.has_email).length;
+
+                // Initialize States
+                compState.data = DATA.companies;
+                pplState.data = DATA.leads;
+                slState.baseData = DATA.leads.filter(l => l.already_sent);
+                slState.data = [...slState.baseData];
+                futState.data = DATA.leads.filter(l => l.has_email && !l.already_sent && !l.is_blacklisted);
+
+                // Setup Filters
+                setupFilters();
+                
+                // Render initial views
+                renderCompaniesInitial();
+                renderPeopleInitial();
+                renderSmartlead();
+                renderFuture();
+
+                document.getElementById('loading').classList.add('hidden');
+            } catch (e) {
+                document.getElementById('loading').textContent = 'Error: Please run export_dashboard_data.py first.';
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabId === 'tab-smartlead') {
+                document.body.style.backgroundColor = 'var(--color-midnight-ink)';
+            } else {
+                document.body.style.backgroundColor = 'var(--color-cream-paper)';
+            }
+        }
+
+        // --- COMPANIES TAB (Redesigned) ---
+        function getEmpBucket(val) {
+            if (!val) return 'Unknown';
+            val = String(val).toLowerCase();
+            if (val === '0-1' || val === '1' || val === '2') return '1-10';
+            if (val === '2-10' || val === '10-feb' || val.match(/^[1-9]$/) || val === '10') return '1-10';
+            if (val === '11-50' || val === 'nov-50') return '11-50';
+            if (val === '51-200') return '51-200';
+            if (val === '201-500') return '201-500';
+            if (val === '501-1000') return '501-1000';
+            if (val === '1001-5000' || val === '5001-10000' || val === '10001+') return '1000+';
+            let num = parseInt(val);
+            if (!isNaN(num)) {
+                if (num <= 10) return '1-10';
+                if (num <= 50) return '11-50';
+                if (num <= 200) return '51-200';
+                if (num <= 500) return '201-500';
+                if (num <= 1000) return '501-1000';
+                return '1000+';
+            }
+            return 'Unknown';
+        }
+
+        function getRevBucket(val) {
+            if (!val) return 'Unknown';
+            let str = String(val);
+            if (str === '0-99999' || str === '100000-499999' || str === '500000-999999') return '< $1M';
+            if (str === '1000000-4999999' || str === '5000000-9999999') return '$1M - $10M';
+            if (str === '10000000-24999999' || str === '25000000-49999999') return '$10M - $50M';
+            if (str === '50000000-99999999' || str === '100000000-499999999' || str === '500000000-999999999' || str === '1000000000-4999999999') return '$50M+';
+            return 'Unknown';
+        }
+
+        const headsRoles = new Set([
+            "associate director", "business owner", "ceo", "ceo and chairman", "chairman", "chief commercial officer (cco)",
+            "chief executive", "chief executive officer", "chief financial officer", "chief operations officer",
+            "chief operations officer coo", "chief strategy officer (cso)", "chief technology officer", "co-founder",
+            "co-founder & technical and innovation director", "co-owner", "commercial director", "company director",
+            "director", "director & fire risk consultant", "director & general manager", "director and founder",
+            "director and general manager", "director mies facilities management", "director of business development",
+            "director of finance", "director of finance and services", "director of fire engineering",
+            "director of fire engineering & risk management", "director of operations", "director of product development",
+            "director of sales & marketing", "director of technical services", "executive chairman", "fields director",
+            "finance & admin", "finance & administration director", "finance administrator", "finance and operations assistant",
+            "finance director", "finance operations manager", "financial director", "founder", "founder & business acquisition specialist",
+            "founder & ceo", "founder & director", "group commercial director", "group commercial sales director",
+            "group finance director", "head of design", "head of development", "head of financial operations", "head of fire",
+            "head of operations", "head of operations and sales", "managing director", "managing director & lead fire door specialist",
+            "managing director (acting) & finance director", "managing director (acting) & finance director", "managing director - commercial",
+            "managing director - operations", "managing director and senior consulting engineer", "managing director at charles thomas heritage fire protection specialists ltd",
+            "managing director at dpj passive fire protection limited", "managing director at gkr facilities services",
+            "managing director at lumi-plugin / ceo and founder of fcs-live", "managing director sales and marketing",
+            "managing director, 3b fire consultancy", "managing director, chs ltd (kitchen & ducting cleaning)", "managing director, commercial director",
+            "managing partner", "md", "operating ceo & executive chairman", "operational director", "operations director",
+            "operations director / iso integrated management systems director", "ops director", "owner", "partner", "partnerships manager",
+            "president", "principal", "principal engineer", "regional director", "senior director", "strategic partnerships development manager",
+            "technical director", "technical operations lead", "technical services director", "vice president"
+        ]);
+
+        const opsRoles = new Set([
+            "area manager", "area operations manager", "branch manager", "business development manager at hmc compliance ltd",
+            "client manager and business operations", "commercial operations manager", "compliance & hr manager",
+            "compliance and systems coordinator", "compliance manager", "compliance officer", "contract manager",
+            "contracts manager", "depot manager", "electrical operations manager", "fire door compliance manager",
+            "fire systems & compliance", "general manager", "head of delivery", "head of fire door operations",
+            "head of operations", "head of service", "independent consultant in quality management systems, logistics & operations management",
+            "junior operations and development administrator", "junior operations manager", "manager of operations",
+            "operations", "operations & compliance manager", "operations & project manager", "operations administrator",
+            "operations and logistics", "operations assistant", "operations coordinator", "operations director",
+            "operations manager", "operations manager - defence & government services", "operations manager fire (passive)",
+            "operations project manager", "operations scheduler", "operations support manager", "operations technical administrator",
+            "ops director", "ops manager", "pa to compliance director", "pm: passive fire compliance surveying & remedial works (bm trada certified)",
+            "project manager", "quality and compliance officer", "regional manager", "regional operations manager",
+            "sales and operations manager", "sales/operations administrator", "senior operations planner", "senior project manager",
+            "service delivery", "service manager", "service operations coordinator", "sheq and compliance manager",
+            "small works and compliance manager", "technical operations & design coordinator", "uk operations manager", "vp operations"
+        ]);
+
+        const bdRoles = new Set(["administrator", "business development manager"]);
+
+        function getPersonaBucket(title) {
+            if (!title) return 'Other/Unknown';
+            let t = title.toLowerCase().trim();
+            if (headsRoles.has(t)) return 'Heads Persona';
+            if (opsRoles.has(t)) return 'Ops Persona';
+            if (bdRoles.has(t)) return 'BD & Admin Persona';
+            
+            if (t.includes('chief') || t.includes('ceo') || t.includes('cto') || t.includes('founder') || t.includes('director') || t.includes('owner') || t.includes('partner') || t.includes('president')) return 'Heads Persona';
+            if (t.includes('operations') || t.includes('manager') || t.includes('compliance') || t.includes('supervisor')) return 'Ops Persona';
+            if (t.includes('engineer') || t.includes('electrician') || t.includes('assessor') || t.includes('technician')) return 'IC - Technical';
+            if (t.includes('assistant') || t.includes('administrator') || t.includes('cleaner') || t.includes('clerk')) return 'IC - Administrative';
+            
+            return 'Other/Unknown';
+        }
+
+        function setupFilters() {
+            const inds = new Set();
+            const emps = new Set();
+            const revs = new Set();
+            
+            DATA.companies.forEach(c => { 
+                if(c.industry) inds.add(c.industry.trim()); 
+                if(c.employee_count) emps.add(getEmpBucket(c.employee_count));
+                if(c.annual_revenue) revs.add(getRevBucket(c.annual_revenue));
+            });
+            
+            const renderChecks = (setObj, id) => {
+                const arr = [...setObj].sort();
+                document.getElementById(id).innerHTML = arr.map(v => 
+                    `<label class="checkbox-item"><input type="checkbox" value="${v.toLowerCase()}" onchange="syncAndFilterCompanies('side')"> ${v}</label>`
+                ).join('');
+            };
+
+            renderChecks(inds, 'compIndustrySide');
+            
+            const empOrder = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+', 'Unknown'];
+            document.getElementById('compEmployeeSide').innerHTML = empOrder.filter(x => emps.has(x)).map(v => 
+                `<label class="checkbox-item"><input type="checkbox" value="${v.toLowerCase()}" onchange="syncAndFilterCompanies('side')"> ${v}</label>`
+            ).join('');
+            
+            const revOrder = ['< $1M', '$1M - $10M', '$10M - $50M', '$50M+', 'Unknown'];
+            document.getElementById('compRevenueSide').innerHTML = revOrder.filter(x => revs.has(x)).map(v => 
+                `<label class="checkbox-item"><input type="checkbox" value="${v.toLowerCase()}" onchange="syncAndFilterCompanies('side')"> ${v}</label>`
+            ).join('');
+            
+            // PEOPLE TAB FILTERS
+            const personas = new Set();
+            const srcs = new Set();
+            DATA.leads.forEach(l => {
+                personas.add(getPersonaBucket(l.job_title));
+                if(l.source) srcs.add(l.source.trim());
+            });
+
+            const personaOrder = ['Heads Persona', 'Ops Persona', 'BD & Admin Persona', 'IC - Technical', 'IC - Administrative', 'Other/Unknown'];
+            document.getElementById('pplPersonaSide').innerHTML = personaOrder.filter(x => personas.has(x)).map(v => 
+                `<label class="checkbox-item"><input type="checkbox" value="${v.toLowerCase()}" onchange="syncAndFilterPeople('side')"> ${v}</label>`
+            ).join('');
+            
+            renderChecks(srcs, 'pplSourceSide');
+        }
+
+        function syncAndFilterCompanies(source) {
+            const center = document.getElementById('compSearchCenter');
+            const side = document.getElementById('compSearchSide');
+            
+            if (source === 'center') side.value = center.value;
+            if (source === 'side') center.value = side.value;
+
+            filterCompanies();
+        }
+
+        function getChecked(id) {
+            return Array.from(document.querySelectorAll(`#${id} input:checked`)).map(el => el.value);
+        }
+
+        function resetCompanyFilters() {
+            document.getElementById('compSearchSide').value = '';
+            document.getElementById('compSearchCenter').value = '';
+            document.getElementById('compKwSide').value = '';
+            document.querySelectorAll('.checkbox-group input').forEach(el => el.checked = false);
+            document.getElementById('compCoverageSide').value = '';
+            document.getElementById('compSentSide').value = '';
+            filterCompanies();
+        }
+
+        function filterCompanies() {
+            const search = document.getElementById('compSearchSide').value.toLowerCase();
+            const kw = document.getElementById('compKwSide').value.toLowerCase();
+            const cov = document.getElementById('compCoverageSide').value;
+            const sent = document.getElementById('compSentSide').value;
+            
+            const inds = getChecked('compIndustrySide');
+            const emps = getChecked('compEmployeeSide');
+            const revs = getChecked('compRevenueSide');
+
+            const isFiltered = search !== '' || kw !== '' || cov !== '' || sent !== '' || inds.length > 0 || emps.length > 0 || revs.length > 0;
+            
+            if (isFiltered) {
+                document.getElementById('compInitialState').style.display = 'none';
+                document.getElementById('compResultsState').style.display = 'block';
+            } else {
+                document.getElementById('compInitialState').style.display = 'flex';
+                document.getElementById('compResultsState').style.display = 'none';
+            }
+
+            compState.data = DATA.companies.filter(c => {
+                if (search && !(c.mapped_company_name||'').toLowerCase().includes(search) && !(c.mapped_domain||'').toLowerCase().includes(search)) return false;
+                if (kw && !(c.website_keywords||'').toLowerCase().includes(kw)) return false;
+                if (cov === 'has_emails' && (!c.leads_with_emails || c.leads_with_emails === 0)) return false;
+                if (sent === 'not_sent' && (c.already_sent > 0)) return false;
+                if (sent === 'sent' && (!c.already_sent || c.already_sent === 0)) return false;
+                
+                if (inds.length > 0 && !inds.includes((c.industry||'').trim().toLowerCase())) return false;
+                if (emps.length > 0 && !emps.includes(getEmpBucket(c.employee_count).toLowerCase())) return false;
+                if (revs.length > 0 && !revs.includes(getRevBucket(c.annual_revenue).toLowerCase())) return false;
+                
+                return true;
+            });
+            compState.page = 1;
+            renderCompaniesTable();
+        }
+
+        function renderCompaniesInitial() {
+            const s = DATA.stats;
+            const actionables = DATA.companies.filter(c=>c.leads_with_emails>0).length;
+            
+            // Fill initial big stats
+            document.getElementById('compInitialStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-card-label">Total Master Records</div>
+                    <div class="stat-card-value">${s.total_companies.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">Actionable Companies</div>
+                    <div class="stat-card-value">${actionables.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">Blacklisted Domains</div>
+                    <div class="stat-card-value">${DATA.companies.filter(c=>c.is_blacklisted).length}</div>
+                </div>
+            `;
+            
+            // Fill results top stats
+            document.getElementById('compStatsGrid').innerHTML = `
+                <div class="stat-card" style="padding: 16px;">
+                    <div class="stat-card-label" style="font-size: 11px;">Master Records</div>
+                    <div class="stat-card-value" style="font-size: 24px;">${s.total_companies.toLocaleString()}</div>
+                </div>
+                <div class="stat-card" style="padding: 16px;">
+                    <div class="stat-card-label" style="font-size: 11px;">Actionable</div>
+                    <div class="stat-card-value" style="font-size: 24px;">${actionables.toLocaleString()}</div>
+                </div>
+            `;
+            
+            renderCompaniesTable();
+        }
+
+        function renderCompaniesTable() {
+            const tbody = document.getElementById('compTableBody');
+            const data = paginate(compState);
+            tbody.innerHTML = data.map(c => `
+                <tr style="${c.is_blacklisted ? 'opacity:0.4' : ''}">
+                    <td class="td-primary">${c.mapped_company_name || '—'}</td>
+                    <td>${c.mapped_domain || '—'}</td>
+                    <td><span class="badge">${c.industry || '—'}</span></td>
+                    <td>${c.total_leads_available || 0}</td>
+                    <td><span class="badge teal">${c.leads_with_emails || 0}</span></td>
+                    <td>${c.is_blacklisted ? '<span class="badge rose">BLACKLISTED</span>' : (c.already_sent > 0 ? `<span class="badge lavender">${c.already_sent} Sent</span>` : 'Clear')}</td>
+                </tr>
+            `).join('');
+            
+            // Update stats grid dynamically with filtered counts
+            if (document.getElementById('compResultsState').style.display === 'block') {
+                document.getElementById('compStatsGrid').innerHTML = `
+                    <div class="stat-card" style="padding: 16px;">
+                        <div class="stat-card-label" style="font-size: 11px;">Filtered Records</div>
+                        <div class="stat-card-value" style="font-size: 24px;">${compState.data.length.toLocaleString()}</div>
+                    </div>
+                `;
+            }
+
+            renderPagination('compPagination', compState, renderCompaniesTable);
+        }
+
+        // --- PEOPLE TAB ---
+        function syncAndFilterPeople(source) {
+            const center = document.getElementById('pplSearchCenter');
+            const side = document.getElementById('pplSearchSide');
+            
+            if (source === 'center') side.value = center.value;
+            if (source === 'side') center.value = side.value;
+
+            filterPeople();
+        }
+
+        function resetPeopleFilters() {
+            document.getElementById('pplSearchSide').value = '';
+            document.getElementById('pplSearchCenter').value = '';
+            document.getElementById('pplKwSide').value = '';
+            document.getElementById('pplEmailSide').value = '';
+            document.getElementById('pplSentSide').value = '';
+            document.querySelectorAll('#pplPersonaSide input, #pplSourceSide input').forEach(el => el.checked = false);
+            filterPeople();
+        }
+
+        function filterPeople() {
+            const search = document.getElementById('pplSearchSide').value.toLowerCase();
+            const kw = document.getElementById('pplKwSide').value.toLowerCase();
+            const email = document.getElementById('pplEmailSide').value;
+            const sent = document.getElementById('pplSentSide').value;
+            
+            const personas = getChecked('pplPersonaSide');
+            const srcs = getChecked('pplSourceSide');
+
+            const isFiltered = search !== '' || kw !== '' || email !== '' || sent !== '' || personas.length > 0 || srcs.length > 0;
+            
+            if (isFiltered) {
+                document.getElementById('pplInitialState').style.display = 'none';
+                document.getElementById('pplResultsState').style.display = 'block';
+            } else {
+                document.getElementById('pplInitialState').style.display = 'flex';
+                document.getElementById('pplResultsState').style.display = 'none';
+            }
+
+            pplState.data = DATA.leads.filter(l => {
+                if (search && !(l.first_name||'').toLowerCase().includes(search) && !(l.last_name||'').toLowerCase().includes(search) && !(l.mapped_email||'').toLowerCase().includes(search) && !(l.job_title||'').toLowerCase().includes(search) && !(l.mapped_domain||'').toLowerCase().includes(search)) return false;
+                
+                if (kw) {
+                    const comp = DATA.companies.find(c => (c.mapped_domain||'').toLowerCase() === (l.mapped_domain||'').toLowerCase());
+                    if (!comp || !(comp.website_keywords||'').toLowerCase().includes(kw)) return false;
+                }
+
+                if (email === 'has_email' && !l.has_email) return false;
+                if (email === 'no_email' && l.has_email) return false;
+                if (sent === 'not_sent' && l.already_sent) return false;
+                if (sent === 'sent' && !l.already_sent) return false;
+                
+                if (personas.length > 0 && !personas.includes(getPersonaBucket(l.job_title).toLowerCase())) return false;
+                if (srcs.length > 0 && !srcs.includes((l.source||'').trim().toLowerCase())) return false;
+                
+                return true;
+            });
+            pplState.page = 1;
+            renderPeopleTable();
+        }
+
+        function renderPeopleInitial() {
+            const s = DATA.stats;
+            document.getElementById('pplInitialStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-card-label">Total People</div>
+                    <div class="stat-card-value">${s.total_leads.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">Verified Emails</div>
+                    <div class="stat-card-value">${s.with_email.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">Needs Enrichment</div>
+                    <div class="stat-card-value">${s.without_email.toLocaleString()}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">Contacted</div>
+                    <div class="stat-card-value">${s.already_sent.toLocaleString()}</div>
+                </div>
+            `;
+            
+            document.getElementById('peopleStatsGrid').innerHTML = `
+                <div class="stat-card" style="padding: 16px;">
+                    <div class="stat-card-label" style="font-size: 11px;">Total People</div>
+                    <div class="stat-card-value" style="font-size: 24px;">${s.total_leads.toLocaleString()}</div>
+                </div>
+                <div class="stat-card" style="padding: 16px;">
+                    <div class="stat-card-label" style="font-size: 11px;">Verified Emails</div>
+                    <div class="stat-card-value" style="font-size: 24px;">${s.with_email.toLocaleString()}</div>
+                </div>
+            `;
+            
+            renderPeopleTable();
+        }
+
+        function renderPeopleTable() {
+            const tbody = document.getElementById('pplTableBody');
+            const data = paginate(pplState);
+            tbody.innerHTML = data.map(l => `
+                <tr>
+                    <td class="td-primary">${l.first_name || ''} ${l.last_name || ''}</td>
+                    <td>${l.job_title || '—'}</td>
+                    <td>${l.mapped_domain || '—'}</td>
+                    <td>${l.has_email ? l.mapped_email : '<span class="badge">Missing</span>'}</td>
+                    <td><span class="badge">${l.source || '—'}</span></td>
+                </tr>
+            `).join('');
+            
+            if (document.getElementById('pplResultsState').style.display === 'block') {
+                document.getElementById('peopleStatsGrid').innerHTML = `
+                    <div class="stat-card" style="padding: 16px;">
+                        <div class="stat-card-label" style="font-size: 11px;">Filtered Records</div>
+                        <div class="stat-card-value" style="font-size: 24px;">${pplState.data.length.toLocaleString()}</div>
+                    </div>
+                `;
+            }
+
+            renderPagination('pplPagination', pplState, renderPeopleTable);
+        }
+
+        // --- SMARTLEAD TAB ---
+        function renderSmartlead() {
+            let tOpen = 0, tClick = 0, tReply = 0;
+            DATA.campaign_stats.forEach(c => {
+                tOpen += c.open_count; tClick += c.click_count; tReply += c.reply_count;
+            });
+            let tSent = slState.data.length;
+
+            document.getElementById('slStatsGrid').innerHTML = `
+                <div class="stat-card stat-card-dark">
+                    <div class="stat-card-label">Unique Leads Contacted</div>
+                    <div class="stat-card-value">${tSent.toLocaleString()}</div>
+                </div>
+                <div class="stat-card stat-card-dark">
+                    <div class="stat-card-label">Total Opened</div>
+                    <div class="stat-card-value">${tOpen.toLocaleString()}</div>
+                </div>
+                <div class="stat-card stat-card-dark">
+                    <div class="stat-card-label">Total Clicked</div>
+                    <div class="stat-card-value">${tClick.toLocaleString()}</div>
+                </div>
+                <div class="stat-card stat-card-dark">
+                    <div class="stat-card-label">Total Replied</div>
+                    <div class="stat-card-value">${tReply.toLocaleString()}</div>
+                </div>
+            `;
+            renderSmartleadTable();
+        }
+
+        function filterSmartlead() {
+            const opened = document.getElementById('slOpenedFilter').value;
+            slState.data = slState.baseData.filter(l => {
+                if (opened === 'opened' && !l.has_opened) return false;
+                if (opened === 'clicked' && !l.has_clicked) return false;
+                if (opened === 'replied' && !l.has_replied) return false;
+                return true;
+            });
+            slState.page = 1;
+            renderSmartleadTable();
+        }
+
+        function renderSmartleadTable() {
+            const tbody = document.getElementById('slTableBody');
+            tbody.innerHTML = '';
+            
+            // Add a small label above the table showing record count
+            let countDiv = document.getElementById('slRecordCount');
+            if (!countDiv) {
+                countDiv = document.createElement('div');
+                countDiv.id = 'slRecordCount';
+                countDiv.style = 'color: var(--color-graphite-veil); font-size: 14px; font-weight: 500; margin-bottom: 12px;';
+                document.querySelector('#slOpenedFilter').parentNode.after(countDiv);
+            }
+            countDiv.innerHTML = `${slState.data.length.toLocaleString()} records`;
+            const data = paginate(slState);
+            tbody.innerHTML = data.map(l => `
+                <tr>
+                    <td style="color:var(--color-white)">${l.mapped_email}</td>
+                    <td style="color:var(--color-graphite-veil)">
+                        ${l.mapped_domain}
+                        ${l.mapped_linkedin ? `<br><a href="${l.mapped_linkedin.startsWith('http') ? l.mapped_linkedin : 'https://'+l.mapped_linkedin}" target="_blank" style="color:var(--color-teal); font-size:12px; display:inline-block; margin-top:4px; text-decoration:none;">🔗 LinkedIn</a>` : ''}
+                    </td>
+                    <td><span class="badge" style="background:var(--color-charcoal-mist);color:var(--color-white)">${l.sent_campaign}</span></td>
+                    <td>
+                        <span class="badge lavender">${l.sent_status || 'Unknown Status'}</span>
+                        ${l.has_opened ? `<span class="badge teal" style="margin-left: 8px;">Opened</span>` : ''}
+                        ${l.has_clicked ? `<span class="badge rose" style="margin-left: 8px;">Clicked</span>` : ''}
+                        ${l.has_replied ? `<span class="badge amber" style="margin-left: 8px;">Replied</span>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+            renderPagination('slPagination', slState, renderSmartleadTable);
+        }
+
+        // --- FUTURE LEADS TAB ---
+        function filterFuture() {
+            const search = document.getElementById('futSearch').value.toLowerCase();
+            futState.data = DATA.leads.filter(l => {
+                if (!l.has_email || l.already_sent || l.is_blacklisted) return false;
+                if (search && !(l.first_name||'').toLowerCase().includes(search) && !(l.last_name||'').toLowerCase().includes(search) && !(l.mapped_email||'').toLowerCase().includes(search)) return false;
+                return true;
+            });
+            futState.page = 1;
+            renderFutureTable();
+        }
+
+        function renderFuture() {
+            renderFutureTable();
+        }
+
+        function renderFutureTable() {
+            const tbody = document.getElementById('futTableBody');
+            const data = paginate(futState);
+            tbody.innerHTML = data.map(l => `
+                <tr>
+                    <td class="td-primary">${l.first_name || ''} ${l.last_name || ''}</td>
+                    <td>${l.job_title || '—'}</td>
+                    <td>${l.mapped_domain}</td>
+                    <td>${l.mapped_email}</td>
+                </tr>
+            `).join('');
+            renderPagination('futPagination', futState, renderFutureTable);
+        }
+
+
+        // --- UTILS ---
+        function paginate(state) {
+            const start = (state.page - 1) * PAGE_SIZE;
+            return state.data.slice(start, start + PAGE_SIZE);
+        }
+
+        function renderPagination(containerId, state, renderFn) {
+            const container = document.getElementById(containerId);
+            const total = state.data.length;
+            const maxPages = Math.ceil(total / PAGE_SIZE) || 1;
+            
+            let html = `<span style="margin-right:16px;font-size:12px;color:var(--color-smoke)">${total.toLocaleString()} records</span>`;
+            html += `<button class="page-btn" ${state.page === 1 ? 'disabled' : ''} onclick="changePage(${state.page - 1}, '${containerId}')">Prev</button>`;
+            
+            let start = Math.max(1, state.page - 2);
+            let end = Math.min(maxPages, state.page + 2);
+            
+            for(let i=start; i<=end; i++) {
+                html += `<button class="page-btn ${i === state.page ? 'active' : ''}" onclick="changePage(${i}, '${containerId}')">${i}</button>`;
+            }
+            
+            html += `<button class="page-btn" ${state.page === maxPages ? 'disabled' : ''} onclick="changePage(${state.page + 1}, '${containerId}')">Next</button>`;
+            
+            container.innerHTML = html;
+            
+            // Store reference to render function for the global changePage handler
+            container.dataset.renderFn = renderFn.name;
+            window[containerId + '_state'] = state; 
+        }
+
+        function changePage(newPage, containerId) {
+            const state = window[containerId + '_state'];
+            state.page = newPage;
+            window[document.getElementById(containerId).dataset.renderFn]();
+        }
+
+        init();
+    </script>
+</body>
+</html>

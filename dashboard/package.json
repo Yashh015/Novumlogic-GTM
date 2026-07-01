@@ -1,0 +1,10 @@
+{
+  "name": "novumlogic-gtm-dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard for Novumlogic",
+  "main": "index.html",
+  "scripts": {
+    "start": "node"
+  },
+  "dependencies": {}
+}
