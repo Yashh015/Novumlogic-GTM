@@ -637,17 +637,48 @@
     <main id="tab-smartlead" class="tab-content section-dark">
         <div class="container">
             <h1 class="display-title" style="color:var(--color-white)"><span>Campaign</span> Intelligence</h1>
-            <p class="subheading" style="margin-bottom: 48px; color:var(--color-smoke)">Live analytics and tracking from your Smartlead campaigns.</p>
+            <p class="subheading" style="margin-bottom: 48px; color:var(--color-smoke)">Live analytics and tracking from your Smartlead campaigns. Updated in real-time via webhook.</p>
             
+            <!-- TOP STAT CARDS -->
             <div class="stats-grid" id="slStatsGrid"></div>
 
+            <!-- CAMPAIGN BREAKDOWN -->
+            <div style="margin: 40px 0 32px;">
+                <h2 class="section-title" style="color:var(--color-white); margin-bottom: 20px;">Campaign Breakdown</h2>
+                <div id="slCampaignCards" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;"></div>
+            </div>
+
+            <!-- ENGAGEMENT ANALYTICS: 2 column grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
+                <!-- Top Engaging Job Titles -->
+                <div style="background: var(--color-charcoal); border: 1px solid var(--color-charcoal-mist); border-radius: var(--radius-cards); padding: 24px;">
+                    <h3 style="color: var(--color-white); font-size: 16px; font-weight: 600; margin-bottom: 20px;">🎯 Top Engaging Job Titles</h3>
+                    <div id="slTitleBars"></div>
+                </div>
+                <!-- Top Engaging Companies -->
+                <div style="background: var(--color-charcoal); border: 1px solid var(--color-charcoal-mist); border-radius: var(--radius-cards); padding: 24px;">
+                    <h3 style="color: var(--color-white); font-size: 16px; font-weight: 600; margin-bottom: 20px;">🏢 Top Engaging Companies</h3>
+                    <div id="slCompanyBars"></div>
+                </div>
+            </div>
+
+            <!-- STATUS DISTRIBUTION -->
+            <div style="background: var(--color-charcoal); border: 1px solid var(--color-charcoal-mist); border-radius: var(--radius-cards); padding: 24px; margin-bottom: 32px;">
+                <h3 style="color: var(--color-white); font-size: 16px; font-weight: 600; margin-bottom: 20px;">📊 Email Status Distribution (All Contacted Leads)</h3>
+                <div id="slStatusBars" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; min-height: 80px;"></div>
+            </div>
+
+            <!-- LEAD TABLE -->
             <div class="filters-bar" style="margin-bottom: 24px; border: 1px solid var(--color-charcoal-mist);">
                 <select id="slOpenedFilter" class="filter-select" style="width: 250px; background: var(--color-midnight-ink); color: var(--color-white);" onchange="filterSmartlead()">
                     <option value="">All Contacted Leads</option>
-                    <option value="opened">Opened Email</option>
-                    <option value="clicked">Clicked Email</option>
-                    <option value="replied">Replied Email</option>
+                    <option value="Opened">Opened Email</option>
+                    <option value="Clicked">Clicked Email</option>
+                    <option value="Replied">Replied Email</option>
+                    <option value="Bounced">Bounced</option>
+                    <option value="Unsubscribed">Unsubscribed</option>
                 </select>
+                <input type="text" id="slSearch" class="filter-input" style="width:250px; background: var(--color-midnight-ink); color: var(--color-white); border-color: var(--color-charcoal-mist);" placeholder="Search email or domain..." oninput="filterSmartlead()">
             </div>
 
             <div class="table-container" style="border-color: var(--color-charcoal-mist); background: var(--color-midnight-ink);">
@@ -655,9 +686,10 @@
                     <table>
                         <thead style="background: var(--color-charcoal); border-bottom: 1px solid var(--color-charcoal-mist);">
                             <tr>
-                                <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Contacted Email</th>
-                                <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Company & LinkedIn</th>
-                                <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Campaign Name</th>
+                                <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Name &amp; Email</th>
+                                <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Job Title</th>
+                                <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Company &amp; LinkedIn</th>
+                                <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Campaign</th>
                                 <th style="background: var(--color-charcoal); color: var(--color-graphite-veil); border-bottom: 1px solid var(--color-charcoal-mist);">Status</th>
                             </tr>
                         </thead>
@@ -668,6 +700,7 @@
             </div>
         </div>
     </main>
+
 
     <!-- TAB: FUTURE LEADS -->
     <main id="tab-future" class="tab-content container section-light">
@@ -1181,11 +1214,16 @@
 
         // --- SMARTLEAD TAB ---
         function renderSmartlead() {
-            let tOpen = 0, tClick = 0, tReply = 0;
-            DATA.campaign_stats.forEach(c => {
-                tOpen += c.open_count; tClick += c.click_count; tReply += c.reply_count;
-            });
-            let tSent = slState.data.length;
+            const sentLeads = slState.baseData;
+
+            // --- TOP STAT CARDS ---
+            const opened  = sentLeads.filter(l => (l.sent_status||'').toLowerCase().includes('open')).length;
+            const clicked = sentLeads.filter(l => (l.sent_status||'').toLowerCase().includes('click')).length;
+            const replied = sentLeads.filter(l => (l.sent_status||'').toLowerCase().includes('repl')).length;
+            const bounced = sentLeads.filter(l => (l.sent_status||'').toLowerCase().includes('bounce')).length;
+            const tSent   = sentLeads.length;
+            const openRate  = tSent ? ((opened / tSent) * 100).toFixed(1) : 0;
+            const replyRate = tSent ? ((replied / tSent) * 100).toFixed(1) : 0;
 
             document.getElementById('slStatsGrid').innerHTML = `
                 <div class="stat-card stat-card-dark">
@@ -1193,27 +1231,109 @@
                     <div class="stat-card-value">${tSent.toLocaleString()}</div>
                 </div>
                 <div class="stat-card stat-card-dark">
-                    <div class="stat-card-label">Total Opened</div>
-                    <div class="stat-card-value">${tOpen.toLocaleString()}</div>
+                    <div class="stat-card-label">Opened</div>
+                    <div class="stat-card-value">${opened.toLocaleString()}</div>
+                    <div class="stat-card-label" style="margin-top:4px; font-size:13px;">${openRate}% open rate</div>
                 </div>
                 <div class="stat-card stat-card-dark">
-                    <div class="stat-card-label">Total Clicked</div>
-                    <div class="stat-card-value">${tClick.toLocaleString()}</div>
+                    <div class="stat-card-label">Clicked</div>
+                    <div class="stat-card-value">${clicked.toLocaleString()}</div>
                 </div>
                 <div class="stat-card stat-card-dark">
-                    <div class="stat-card-label">Total Replied</div>
-                    <div class="stat-card-value">${tReply.toLocaleString()}</div>
+                    <div class="stat-card-label">Replied</div>
+                    <div class="stat-card-value">${replied.toLocaleString()}</div>
+                    <div class="stat-card-label" style="margin-top:4px; font-size:13px;">${replyRate}% reply rate</div>
+                </div>
+                <div class="stat-card stat-card-dark">
+                    <div class="stat-card-label">Bounced</div>
+                    <div class="stat-card-value">${bounced.toLocaleString()}</div>
                 </div>
             `;
+
+            // --- CAMPAIGN BREAKDOWN CARDS ---
+            const campaignCards = (DATA.campaign_stats || []).map(c => {
+                const rate = c.sent_count ? ((c.open_count / c.sent_count) * 100).toFixed(1) : 0;
+                const rRate = c.sent_count ? ((c.reply_count / c.sent_count) * 100).toFixed(1) : 0;
+                const statusColor = c.status === 'ACTIVE' ? '#2a9d8f' : c.status === 'PAUSED' ? '#e9c46a' : '#888';
+                return `
+                    <div style="background: var(--color-charcoal); border: 1px solid var(--color-charcoal-mist); border-radius: var(--radius-cards); padding: 20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                            <div style="color:var(--color-white); font-weight:600; font-size:14px; line-height:1.4;">${c.name}</div>
+                            <span style="background:${statusColor}22; color:${statusColor}; font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; white-space:nowrap; margin-left:8px;">${c.status}</span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; text-align:center;">
+                            <div><div style="color:var(--color-graphite-veil); font-size:11px;">SENT</div><div style="color:var(--color-white); font-weight:700; font-size:18px;">${c.sent_count.toLocaleString()}</div></div>
+                            <div><div style="color:var(--color-graphite-veil); font-size:11px;">OPENED</div><div style="color:#2a9d8f; font-weight:700; font-size:18px;">${c.open_count.toLocaleString()}</div><div style="color:var(--color-graphite-veil); font-size:11px;">${rate}%</div></div>
+                            <div><div style="color:var(--color-graphite-veil); font-size:11px;">REPLIED</div><div style="color:#e9c46a; font-weight:700; font-size:18px;">${c.reply_count.toLocaleString()}</div><div style="color:var(--color-graphite-veil); font-size:11px;">${rRate}%</div></div>
+                        </div>
+                    </div>`;
+            }).join('');
+            document.getElementById('slCampaignCards').innerHTML = campaignCards || '<p style="color:var(--color-graphite-veil)">No campaign data yet.</p>';
+
+            // --- TOP ENGAGING JOB TITLES ---
+            const engagedLeads = sentLeads.filter(l => ['opened','clicked','replied'].some(s => (l.sent_status||'').toLowerCase().includes(s)));
+            const titleMap = {};
+            engagedLeads.forEach(l => { if (l.job_title?.trim()) { const t = l.job_title.trim(); titleMap[t] = (titleMap[t]||0)+1; } });
+            const topTitles = Object.entries(titleMap).sort((a,b) => b[1]-a[1]).slice(0, 8);
+            const maxT = topTitles[0]?.[1] || 1;
+            document.getElementById('slTitleBars').innerHTML = topTitles.length
+                ? topTitles.map(([title, count]) => `
+                    <div style="margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span style="color:var(--color-white); font-size:13px; font-weight:500;">${title}</span>
+                            <span style="color:var(--color-graphite-veil); font-size:13px;">${count}</span>
+                        </div>
+                        <div style="background:var(--color-charcoal-mist); border-radius:4px; height:6px;">
+                            <div style="background: linear-gradient(90deg,#7c6fcd,#a78bfa); height:6px; border-radius:4px; width:${(count/maxT*100).toFixed(1)}%; transition: width 0.4s;"></div>
+                        </div>
+                    </div>`).join('')
+                : '<p style="color:var(--color-graphite-veil); font-size:13px;">Webhook data will populate this once leads engage.</p>';
+
+            // --- TOP ENGAGING COMPANIES ---
+            const companyMap = {};
+            engagedLeads.forEach(l => { if (l.mapped_domain?.trim()) { const d = l.mapped_domain.trim(); companyMap[d] = (companyMap[d]||0)+1; } });
+            const topCompanies = Object.entries(companyMap).sort((a,b) => b[1]-a[1]).slice(0, 8);
+            const maxC = topCompanies[0]?.[1] || 1;
+            document.getElementById('slCompanyBars').innerHTML = topCompanies.length
+                ? topCompanies.map(([domain, count]) => `
+                    <div style="margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span style="color:var(--color-white); font-size:13px; font-weight:500;">${domain}</span>
+                            <span style="color:var(--color-graphite-veil); font-size:13px;">${count}</span>
+                        </div>
+                        <div style="background:var(--color-charcoal-mist); border-radius:4px; height:6px;">
+                            <div style="background: linear-gradient(90deg,#2a9d8f,#52c9ba); height:6px; border-radius:4px; width:${(count/maxC*100).toFixed(1)}%; transition: width 0.4s;"></div>
+                        </div>
+                    </div>`).join('')
+                : '<p style="color:var(--color-graphite-veil); font-size:13px;">Webhook data will populate this once leads engage.</p>';
+
+            // --- STATUS DISTRIBUTION BAR CHART ---
+            const statusMap = {};
+            sentLeads.forEach(l => { const s = l.sent_status || 'Unknown'; statusMap[s] = (statusMap[s]||0)+1; });
+            const statusColors = { 'Sent':'#6c6c9a','Opened':'#2a9d8f','Clicked':'#52c9ba','Replied':'#e9c46a','Bounced':'#e63946','Unsubscribed':'#e07a5f','Unknown':'#555' };
+            const statusEntries = Object.entries(statusMap).sort((a,b) => b[1]-a[1]);
+            const maxS = statusEntries[0]?.[1] || 1;
+            document.getElementById('slStatusBars').innerHTML = statusEntries.map(([status, count]) => {
+                const pct = (count/tSent*100).toFixed(1);
+                const color = statusColors[status] || '#888';
+                const barH = Math.max(20, (count/maxS)*80);
+                return `<div style="text-align:center; flex:1; min-width:60px;">
+                    <div style="font-size:13px; font-weight:700; color:var(--color-white); margin-bottom:4px;">${count}</div>
+                    <div style="background:${color}; height:${barH}px; border-radius:4px 4px 0 0; margin-bottom:4px;"></div>
+                    <div style="font-size:11px; color:var(--color-graphite-veil);">${status}</div>
+                    <div style="font-size:11px; color:${color}; font-weight:600;">${pct}%</div>
+                </div>`;
+            }).join('');
+
             renderSmartleadTable();
         }
 
         function filterSmartlead() {
-            const opened = document.getElementById('slOpenedFilter').value;
+            const statusFilter = document.getElementById('slOpenedFilter').value.toLowerCase();
+            const search = (document.getElementById('slSearch')?.value || '').toLowerCase();
             slState.data = slState.baseData.filter(l => {
-                if (opened === 'opened' && !l.has_opened) return false;
-                if (opened === 'clicked' && !l.has_clicked) return false;
-                if (opened === 'replied' && !l.has_replied) return false;
+                if (statusFilter && !(l.sent_status||'').toLowerCase().includes(statusFilter)) return false;
+                if (search && !(l.mapped_email||'').toLowerCase().includes(search) && !(l.mapped_domain||'').toLowerCase().includes(search)) return false;
                 return true;
             });
             slState.page = 1;
@@ -1224,32 +1344,35 @@
             const tbody = document.getElementById('slTableBody');
             tbody.innerHTML = '';
             
-            // Add a small label above the table showing record count
             let countDiv = document.getElementById('slRecordCount');
             if (!countDiv) {
                 countDiv = document.createElement('div');
                 countDiv.id = 'slRecordCount';
                 countDiv.style = 'color: var(--color-graphite-veil); font-size: 14px; font-weight: 500; margin-bottom: 12px;';
-                document.querySelector('#slOpenedFilter').parentNode.after(countDiv);
+                document.getElementById('slOpenedFilter').parentNode.after(countDiv);
             }
             countDiv.innerHTML = `${slState.data.length.toLocaleString()} records`;
+
+            const statusColors = { 'Sent':'#6c6c9a','Opened':'#2a9d8f','Clicked':'#52c9ba','Replied':'#e9c46a','Bounced':'#e63946','Unsubscribed':'#e07a5f' };
+
             const data = paginate(slState);
-            tbody.innerHTML = data.map(l => `
-                <tr>
-                    <td style="color:var(--color-white)">${l.mapped_email}</td>
-                    <td style="color:var(--color-graphite-veil)">
-                        ${l.mapped_domain}
-                        ${l.mapped_linkedin ? `<br><a href="${l.mapped_linkedin.startsWith('http') ? l.mapped_linkedin : 'https://'+l.mapped_linkedin}" target="_blank" style="color:var(--color-teal); font-size:12px; display:inline-block; margin-top:4px; text-decoration:none;">🔗 LinkedIn</a>` : ''}
-                    </td>
-                    <td><span class="badge" style="background:var(--color-charcoal-mist);color:var(--color-white)">${l.sent_campaign}</span></td>
+            tbody.innerHTML = data.map(l => {
+                const statusColor = statusColors[l.sent_status] || '#888';
+                const name = [l.first_name, l.last_name].filter(Boolean).join(' ') || '—';
+                return `<tr>
                     <td>
-                        <span class="badge lavender">${l.sent_status || 'Unknown Status'}</span>
-                        ${l.has_opened ? `<span class="badge teal" style="margin-left: 8px;">Opened</span>` : ''}
-                        ${l.has_clicked ? `<span class="badge rose" style="margin-left: 8px;">Clicked</span>` : ''}
-                        ${l.has_replied ? `<span class="badge amber" style="margin-left: 8px;">Replied</span>` : ''}
+                        <div style="color:var(--color-white); font-weight:500; margin-bottom:2px;">${name}</div>
+                        <div style="color:var(--color-graphite-veil); font-size:12px;">${l.mapped_email}</div>
                     </td>
-                </tr>
-            `).join('');
+                    <td style="color:var(--color-graphite-veil); font-size:13px;">${l.job_title || '—'}</td>
+                    <td style="color:var(--color-graphite-veil)">
+                        <div>${l.mapped_domain}</div>
+                        ${l.mapped_linkedin ? `<a href="${l.mapped_linkedin.startsWith('http') ? l.mapped_linkedin : 'https://'+l.mapped_linkedin}" target="_blank" style="color:#7c6fcd; font-size:12px; text-decoration:none;">🔗 LinkedIn</a>` : ''}
+                    </td>
+                    <td><span class="badge" style="background:var(--color-charcoal-mist);color:var(--color-white);">${l.sent_campaign}</span></td>
+                    <td><span class="badge" style="background:${statusColor}22; color:${statusColor}; border:1px solid ${statusColor}44;">${l.sent_status || 'Unknown'}</span></td>
+                </tr>`;
+            }).join('');
             renderPagination('slPagination', slState, renderSmartleadTable);
         }
 
