@@ -645,7 +645,20 @@
             <!-- CAMPAIGN BREAKDOWN -->
             <div style="margin: 40px 0 32px;">
                 <h2 class="section-title" style="color:var(--color-white); margin-bottom: 20px;">Campaign Breakdown</h2>
-                <div id="slCampaignCards" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;"></div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Campaign Name</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Sent</th>
+                                <th style="text-align: right;">Opened</th>
+                                <th style="text-align: right;">Replied</th>
+                            </tr>
+                        </thead>
+                        <tbody id="slCampaignCards"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- ENGAGEMENT ANALYTICS: 2 column grid -->
@@ -1250,23 +1263,36 @@
                 </div>
             `;
 
-            // --- CAMPAIGN BREAKDOWN CARDS ---
+            // --- CAMPAIGN BREAKDOWN CARDS (Table Rows) ---
             const campaignCards = (DATA.campaign_stats || []).map(c => {
                 const rate = c.sent_count ? ((c.open_count / c.sent_count) * 100).toFixed(1) : 0;
                 const rRate = c.sent_count ? ((c.reply_count / c.sent_count) * 100).toFixed(1) : 0;
                 const statusColor = c.status === 'ACTIVE' ? '#2a9d8f' : c.status === 'PAUSED' ? '#e9c46a' : '#888';
                 return `
-                    <div style="background: var(--color-charcoal); border: 1px solid var(--color-charcoal-mist); border-radius: var(--radius-cards); padding: 20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-                            <div style="color:var(--color-white); font-weight:600; font-size:14px; line-height:1.4;">${c.name}</div>
-                            <span style="background:${statusColor}22; color:${statusColor}; font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; white-space:nowrap; margin-left:8px;">${c.status}</span>
-                        </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; text-align:center;">
-                            <div><div style="color:var(--color-graphite-veil); font-size:11px;">SENT</div><div style="color:var(--color-white); font-weight:700; font-size:18px;">${c.sent_count.toLocaleString()}</div></div>
-                            <div><div style="color:var(--color-graphite-veil); font-size:11px;">OPENED</div><div style="color:#2a9d8f; font-weight:700; font-size:18px;">${c.open_count.toLocaleString()}</div><div style="color:var(--color-graphite-veil); font-size:11px;">${rate}%</div></div>
-                            <div><div style="color:var(--color-graphite-veil); font-size:11px;">REPLIED</div><div style="color:#e9c46a; font-weight:700; font-size:18px;">${c.reply_count.toLocaleString()}</div><div style="color:var(--color-graphite-veil); font-size:11px;">${rRate}%</div></div>
-                        </div>
-                    </div>`;
+                    <tr>
+                        <td style="color:var(--color-white); font-weight:500;">${c.name}</td>
+                        <td><span class="badge" style="background:${statusColor}22; color:${statusColor}; border:1px solid ${statusColor}44;">${c.status}</span></td>
+                        <td style="text-align: right; color:var(--color-white); font-weight: 500;">${c.sent_count.toLocaleString()}</td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                                <div style="color:#2a9d8f; font-weight:600; font-size: 14px;">${c.open_count.toLocaleString()}</div>
+                                <div style="font-size:12px; color:var(--color-graphite-veil); min-width:40px;">${rate}%</div>
+                                <div style="width: 40px; height: 4px; background: var(--color-charcoal-mist); border-radius: 2px; overflow: hidden;">
+                                    <div style="width: ${rate}%; height: 100%; background: #2a9d8f;"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                                <div style="color:#e9c46a; font-weight:600; font-size: 14px;">${c.reply_count.toLocaleString()}</div>
+                                <div style="font-size:12px; color:var(--color-graphite-veil); min-width:40px;">${rRate}%</div>
+                                <div style="width: 40px; height: 4px; background: var(--color-charcoal-mist); border-radius: 2px; overflow: hidden;">
+                                    <div style="width: ${rRate}%; height: 100%; background: #e9c46a;"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
             }).join('');
             document.getElementById('slCampaignCards').innerHTML = campaignCards || '<p style="color:var(--color-graphite-veil)">No campaign data yet.</p>';
 
