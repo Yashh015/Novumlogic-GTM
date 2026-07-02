@@ -742,6 +742,14 @@
             <!-- TOP STAT CARDS -->
             <div class="stats-grid" id="slStatsGrid"></div>
 
+            <!-- AUDIENCE INSIGHTS -->
+            <div style="margin: 40px 0 32px;" id="slInsightsSection">
+                <h2 class="section-title" style="color:var(--color-white); margin-bottom: 8px;">Audience Insights <span style="font-size: 14px; font-weight: normal; color: var(--color-smoke); margin-left: 12px;">(Based on Clicks & Replies)</span></h2>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 24px;" id="slInsightsGrid">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
             <!-- CAMPAIGN BREAKDOWN -->
             <div style="margin: 40px 0 32px;">
                 <h2 class="section-title" style="color:var(--color-white); margin-bottom: 20px;">Campaign Breakdown</h2>
@@ -1854,6 +1862,78 @@
             const tSent   = sentLeads.length;
             const openRate  = tSent ? ((opened / tSent) * 100).toFixed(1) : 0;
             const replyRate = tSent ? ((replied / tSent) * 100).toFixed(1) : 0;
+
+            // --- AUDIENCE INSIGHTS (Clicks & Replies) ---
+            const engagedLeads = sentLeads.filter(l => {
+                const s = (l.sent_status || '').toLowerCase();
+                return s.includes('click') || s.includes('repl');
+            });
+
+            const indCounts = {};
+            const perCounts = {};
+            const empCounts = {};
+            const revCounts = {};
+
+            const domainToCompany = {};
+            DATA.companies.forEach(c => {
+                if (c.mapped_domain) domainToCompany[c.mapped_domain.toLowerCase()] = c;
+            });
+
+            engagedLeads.forEach(l => {
+                const p = getPersonaBucket(l.job_title);
+                perCounts[p] = (perCounts[p] || 0) + 1;
+
+                if (l.mapped_domain) {
+                    const comp = domainToCompany[l.mapped_domain.toLowerCase()];
+                    if (comp) {
+                        const ind = comp.industry || 'Unknown';
+                        indCounts[ind] = (indCounts[ind] || 0) + 1;
+
+                        const emp = getEmpBucket(comp.employee_count);
+                        if (emp !== 'Unknown') empCounts[emp] = (empCounts[emp] || 0) + 1;
+
+                        const rev = getRevBucket(comp.annual_revenue);
+                        if (rev !== 'Unknown') revCounts[rev] = (revCounts[rev] || 0) + 1;
+                    }
+                }
+            });
+
+            const renderLeaderboard = (counts, title) => {
+                const sorted = Object.keys(counts).map(k => ({ name: k, count: counts[k] })).sort((a,b) => b.count - a.count).slice(0, 5);
+                const total = sorted.reduce((sum, item) => sum + item.count, 0) || 1;
+                
+                let html = `<div style="background: var(--color-charcoal); border: 1px solid var(--color-charcoal-mist); border-radius: 12px; padding: 20px;">
+                                <h3 style="color: var(--color-white); font-size: 14px; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px;">${title}</h3>`;
+                
+                if (sorted.length === 0) {
+                    html += `<div style="color: var(--color-smoke); font-size: 13px;">No data yet.</div>`;
+                } else {
+                    html += `<div style="display: flex; flex-direction: column; gap: 16px;">`;
+                    sorted.forEach(item => {
+                        const pct = Math.round((item.count / total) * 100);
+                        html += `
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+                                    <span style="color: var(--color-stone-mist); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;" title="${item.name}">${item.name}</span>
+                                    <span style="color: var(--color-deep-forest-teal); font-weight: 600;">${pct}% <span style="color: var(--color-smoke); font-weight: normal; font-size: 11px;">(${item.count})</span></span>
+                                </div>
+                                <div style="width: 100%; height: 6px; background: var(--color-charcoal-mist); border-radius: 3px; overflow: hidden;">
+                                    <div style="width: ${pct}%; height: 100%; background: var(--color-deep-forest-teal);"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+                html += `</div>`;
+                return html;
+            };
+
+            document.getElementById('slInsightsGrid').innerHTML = 
+                renderLeaderboard(indCounts, '🏆 Top Industries') +
+                renderLeaderboard(perCounts, '👤 Top Personas') +
+                renderLeaderboard(empCounts, '🏢 Company Sizes') +
+                renderLeaderboard(revCounts, '💰 Revenues');
 
             document.getElementById('slStatsGrid').innerHTML = `
                 <div class="stat-card stat-card-dark">
