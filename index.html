@@ -1881,19 +1881,27 @@
 
             engagedLeads.forEach(l => {
                 const p = getPersonaBucket(l.job_title);
-                perCounts[p] = (perCounts[p] || 0) + 1;
+                if (p && p !== 'Unknown') {
+                    perCounts[p] = (perCounts[p] || 0) + 1;
+                }
 
                 if (l.mapped_domain) {
                     const comp = domainToCompany[l.mapped_domain.toLowerCase()];
                     if (comp) {
-                        const ind = comp.industry || 'Unknown';
-                        indCounts[ind] = (indCounts[ind] || 0) + 1;
+                        const ind = comp.industry;
+                        if (ind && ind.trim() !== '' && ind !== 'Unknown') {
+                            indCounts[ind] = (indCounts[ind] || 0) + 1;
+                        }
 
                         const emp = getEmpBucket(comp.employee_count);
-                        if (emp !== 'Unknown') empCounts[emp] = (empCounts[emp] || 0) + 1;
+                        if (emp && emp !== 'Unknown') {
+                            empCounts[emp] = (empCounts[emp] || 0) + 1;
+                        }
 
                         const rev = getRevBucket(comp.annual_revenue);
-                        if (rev !== 'Unknown') revCounts[rev] = (revCounts[rev] || 0) + 1;
+                        if (rev && rev !== 'Unknown') {
+                            revCounts[rev] = (revCounts[rev] || 0) + 1;
+                        }
                     }
                 }
             });
