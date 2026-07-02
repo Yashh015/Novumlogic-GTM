@@ -220,7 +220,7 @@ export default async function handler(req, res) {
       finalExported: finalSmartleadReady.length
     };
 
-    return res.status(200).json({ csv: csvString, stats: stats });
+    return res.status(200).json({ csv: csvString, stats: stats, finalLeads: finalSmartleadReady });
 
   } catch (err) {
     console.error('Process Leads Error:', err);

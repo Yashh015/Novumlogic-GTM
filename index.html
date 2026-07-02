@@ -827,14 +827,23 @@
         <p class="subheading" style="margin-bottom: 48px;">Process raw exports into Smartlead-ready CSVs instantly.</p>
         
         <div class="card" style="max-width: 600px; margin: 0 auto; text-align: center;">
-            <div style="margin-bottom: 24px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; text-align: left;">Lead Source</label>
-                <select id="uploadSource" class="filter-select">
-                    <option value="Ai ark">Ai Ark</option>
-                    <option value="Apollo">Apollo</option>
-                    <option value="Ocean.io">Ocean.io</option>
-                    <option value="Other">Other</option>
-                </select>
+            <div style="margin-bottom: 24px; display: flex; gap: 16px;">
+                <div style="flex: 1;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; text-align: left;">Lead Source</label>
+                    <select id="uploadSource" class="filter-select">
+                        <option value="Ai ark">Ai Ark</option>
+                        <option value="Apollo">Apollo</option>
+                        <option value="Ocean.io">Ocean.io</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; text-align: left;">Target Campaign</label>
+                    <select id="targetCampaign" class="filter-select">
+                        <option value="">None (Just download CSV)</option>
+                        <option disabled>Loading campaigns...</option>
+                    </select>
+                </div>
             </div>
             
             <div style="margin-bottom: 24px; border: 2px dashed var(--color-stone-mist); border-radius: var(--radius-buttons); padding: 48px; background: var(--color-cream-paper);">
@@ -849,6 +858,38 @@
     </main>
 
     <script>
+        let globalFinalLeads = [];
+        let globalSelectedCampaign = "";
+        let campaignsLoaded = false;
+        
+        async function loadCampaignsIfNeeded() {
+            if (campaignsLoaded) return;
+            try {
+                const pwd = localStorage.getItem('dashboardPwd');
+                const res = await fetch('/api/campaigns', {
+                    headers: { 'x-dashboard-auth': pwd || '' }
+                });
+                if (!res.ok) return;
+                const campaigns = await res.json();
+                
+                const select = document.getElementById('targetCampaign');
+                select.innerHTML = '<option value="">None (Just download CSV)</option>';
+                campaigns.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.name;
+                    select.appendChild(opt);
+                });
+                campaignsLoaded = true;
+            } catch (e) {
+                console.error("Failed to load campaigns", e);
+            }
+        }
+        
+        // Trigger load when interacting with the select
+        document.getElementById('targetCampaign').addEventListener('focus', loadCampaignsIfNeeded);
+        document.getElementById('targetCampaign').addEventListener('mouseover', loadCampaignsIfNeeded);
+
         async function processUploadedLeads() {
             const fileInput = document.getElementById('uploadFile');
             const source = document.getElementById('uploadSource').value;
@@ -900,9 +941,12 @@
                         a.remove();
                         window.URL.revokeObjectURL(url);
                         
+                        globalFinalLeads = result.finalLeads || [];
+                        globalSelectedCampaign = document.getElementById('targetCampaign').value;
+
                         // Display Detailed Stats
                         const duplicatesSkipped = result.stats.withEmails - result.stats.blocked - result.stats.finalExported;
-                        const statsHtml = `
+                        let statsHtml = `
                             <div style="margin-top: 24px; padding: 24px; background: var(--color-white); border: 1px solid var(--color-stone-mist); border-radius: var(--radius-buttons); text-align: left;">
                                 <h4 style="margin-bottom: 16px; color: var(--color-midnight-ink); font-size: 16px;">Processing Summary</h4>
                                 <ul style="list-style: none; padding: 0; margin: 0; font-size: 14px; color: var(--color-smoke); line-height: 1.8;">
@@ -914,8 +958,18 @@
                                         Final Exported for Smartlead: ${result.stats.finalExported} leads
                                     </li>
                                 </ul>
-                            </div>
                         `;
+                        
+                        if (globalSelectedCampaign && result.stats.finalExported > 0) {
+                            statsHtml += `
+                                <div id="confirmPushSection" style="margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--color-stone-mist);">
+                                    <p style="margin-bottom: 16px; font-size: 14px; color: var(--color-midnight-ink); font-weight: 500;">Ready to push ${result.stats.finalExported} leads directly to the selected Smartlead campaign?</p>
+                                    <button class="btn-primary" style="width: 100%; padding: 12px; font-size: 14px; background: var(--color-deep-forest-teal);" onclick="confirmPushToSmartlead()">Confirm & Push to API</button>
+                                </div>
+                            `;
+                        }
+                        
+                        statsHtml += `</div>`;
                         
                         statusEl.innerHTML = `<span style="color: var(--color-deep-forest-teal); font-weight: 600;">Success! Clean CSV downloaded.</span>` + statsHtml;
                     } catch (error) {
@@ -931,6 +985,42 @@
                     btn.disabled = false;
                 }
             });
+        }
+
+        async function confirmPushToSmartlead() {
+            const btn = document.querySelector('#confirmPushSection button');
+            if (!btn) return;
+            
+            btn.disabled = true;
+            btn.textContent = "Pushing to Smartlead API...";
+            
+            try {
+                const pwd = localStorage.getItem('dashboardPwd');
+                const response = await fetch('/api/push-to-smartlead', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-dashboard-auth': pwd || ''
+                    },
+                    body: JSON.stringify({ campaignId: globalSelectedCampaign, leads: globalFinalLeads })
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'API Push Failed');
+                }
+                
+                document.getElementById('confirmPushSection').innerHTML = `<p style="color: green; font-weight: 600;">✅ Successfully pushed ${globalFinalLeads.length} leads directly to the campaign! Verification skipped.</p>`;
+            } catch (error) {
+                btn.disabled = false;
+                btn.textContent = "Try Again";
+                const errorMsg = document.createElement('p');
+                errorMsg.style.color = "red";
+                errorMsg.style.fontSize = "12px";
+                errorMsg.style.marginTop = "8px";
+                errorMsg.textContent = `Error: ${error.message}`;
+                btn.parentNode.appendChild(errorMsg);
+            }
         }
     </script>
 
