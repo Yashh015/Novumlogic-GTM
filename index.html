@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
     <style>
         :root {
@@ -510,6 +511,7 @@
             <button class="nav-item" onclick="switchTab('tab-people')">People</button>
             <button class="nav-item" onclick="switchTab('tab-smartlead')">Smartlead</button>
             <button class="nav-item" onclick="switchTab('tab-future')">Future Leads</button>
+            <button class="nav-item" onclick="switchTab('tab-upload')">Upload Leads</button>
         </nav>
     </div>
 
@@ -818,6 +820,101 @@
             <div class="pagination" id="futPagination"></div>
         </div>
     </main>
+
+    <!-- TAB: UPLOAD LEADS -->
+    <main id="tab-upload" class="tab-content container section-light">
+        <h1 class="display-title"><span>Upload</span> Leads</h1>
+        <p class="subheading" style="margin-bottom: 48px;">Process raw exports into Smartlead-ready CSVs instantly.</p>
+        
+        <div class="card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; text-align: left;">Lead Source</label>
+                <select id="uploadSource" class="filter-select">
+                    <option value="Ai ark">Ai Ark</option>
+                    <option value="Apollo">Apollo</option>
+                    <option value="Ocean.io">Ocean.io</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            
+            <div style="margin-bottom: 24px; border: 2px dashed var(--color-stone-mist); border-radius: var(--radius-buttons); padding: 48px; background: var(--color-cream-paper);">
+                <input type="file" id="uploadFile" accept=".csv" style="display: none;" onchange="document.getElementById('fileNameDisplay').textContent = this.files[0]?.name || 'No file selected'">
+                <button class="btn-ghost" onclick="document.getElementById('uploadFile').click()">Choose CSV File</button>
+                <p id="fileNameDisplay" style="margin-top: 12px; font-size: 14px; color: var(--color-smoke);">No file selected</p>
+            </div>
+            
+            <button class="btn-primary" style="width: 100%; padding: 16px; font-size: 16px;" onclick="processUploadedLeads()" id="processBtn">Process & Download Smartlead CSV</button>
+            <p id="uploadStatus" style="margin-top: 16px; font-size: 14px; font-weight: 500; color: var(--color-midnight-ink);"></p>
+        </div>
+    </main>
+
+    <script>
+        async function processUploadedLeads() {
+            const fileInput = document.getElementById('uploadFile');
+            const source = document.getElementById('uploadSource').value;
+            const statusEl = document.getElementById('uploadStatus');
+            const btn = document.getElementById('processBtn');
+            
+            if (!fileInput.files.length) {
+                statusEl.textContent = "Please select a CSV file first.";
+                statusEl.style.color = "red";
+                return;
+            }
+            
+            btn.disabled = true;
+            statusEl.style.color = "var(--color-midnight-ink)";
+            statusEl.textContent = "Parsing CSV in browser...";
+            
+            Papa.parse(fileInput.files[0], {
+                header: true,
+                skipEmptyLines: true,
+                complete: async function(results) {
+                    try {
+                        statusEl.textContent = "Sending " + results.data.length + " rows to backend... This may take up to 60 seconds.";
+                        
+                        const pwd = localStorage.getItem('dashboardPwd');
+                        const response = await fetch('/api/process-leads', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-dashboard-auth': pwd || ''
+                            },
+                            body: JSON.stringify({ source: source, data: results.data })
+                        });
+                        
+                        if (!response.ok) {
+                            const err = await response.json();
+                            throw new Error(err.error || 'Failed to process leads');
+                        }
+                        
+                        // Download the resulting CSV
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = "SMARTLEAD_READY_" + new Date().toISOString().split('T')[0] + ".csv";
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                        
+                        statusEl.textContent = "Success! Clean CSV downloaded. Database updated.";
+                        statusEl.style.color = "green";
+                    } catch (error) {
+                        statusEl.textContent = "Error: " + error.message;
+                        statusEl.style.color = "red";
+                    } finally {
+                        btn.disabled = false;
+                    }
+                },
+                error: function(err) {
+                    statusEl.textContent = "Failed to parse CSV: " + err.message;
+                    statusEl.style.color = "red";
+                    btn.disabled = false;
+                }
+            });
+        }
+    </script>
 
     <script>
         let DATA = null;
