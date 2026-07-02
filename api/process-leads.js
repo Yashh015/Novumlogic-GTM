@@ -156,8 +156,11 @@ export default async function handler(req, res) {
 
     // 3. Final Filtered List
     const finalSmartleadReady = [];
+    let blockedCount = 0;
+    
     for (const row of selectedWithEmails) {
       if (blacklistedEmails.has(row._email) || blacklistedDomains.has(row._domain) || sentEmails.has(row._email)) {
+        blockedCount++;
         continue; // Blocked or already sent
       }
       // Clean up internal properties
@@ -166,7 +169,7 @@ export default async function handler(req, res) {
       finalSmartleadReady.push(row);
     }
 
-    // 4. Background bulk DB Inserts (Fire and Forget to avoid holding up the response if not strictly necessary, but awaiting is safer)
+    // 4. Background bulk DB Inserts (Fire and Forget)
     async function bulkInsert(table, arr) {
       if (!arr || arr.length === 0) return;
       const batchSize = 1000;
@@ -185,7 +188,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Await them so Vercel doesn't kill the background processes
     await Promise.all([
       bulkInsert('companies', Array.from(dbCompanies.values())),
       bulkInsert('leads', dbLeads),
@@ -193,29 +195,32 @@ export default async function handler(req, res) {
     ]);
 
     // 5. Generate CSV Response
-    if (finalSmartleadReady.length === 0) {
-      res.setHeader('Content-Type', 'text/csv');
-      return res.status(200).send("First Name,Last Name,Email,Company,Title,Website,LinkedIn\n");
+    let csvString = "First Name,Last Name,Email,Company,Title,Website,LinkedIn\n";
+    if (finalSmartleadReady.length > 0) {
+      const headers = Object.keys(finalSmartleadReady[0]);
+      const csvRows = [headers.join(',')];
+      for (const row of finalSmartleadReady) {
+        const values = headers.map(h => {
+          let val = (row[h] || '').toString();
+          if (val.includes(',') || val.includes('"')) {
+            val = `"${val.replace(/"/g, '""')}"`;
+          }
+          return val;
+        });
+        csvRows.push(values.join(','));
+      }
+      csvString = csvRows.join('\n');
     }
+    
+    const stats = {
+      totalUploaded: data.length,
+      withEmails: selectedWithEmails.length + blockedCount,
+      withoutEmails: dbLeadsNoEmail.length,
+      blocked: blockedCount,
+      finalExported: finalSmartleadReady.length
+    };
 
-    const headers = Object.keys(finalSmartleadReady[0]);
-    const csvRows = [headers.join(',')];
-    for (const row of finalSmartleadReady) {
-      const values = headers.map(h => {
-        let val = (row[h] || '').toString();
-        // Escape quotes and wrap in quotes if there are commas
-        if (val.includes(',') || val.includes('"')) {
-          val = `"${val.replace(/"/g, '""')}"`;
-        }
-        return val;
-      });
-      csvRows.push(values.join(','));
-    }
-
-    const csvString = csvRows.join('\n');
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename="smartlead_ready.csv"');
-    return res.status(200).send(csvString);
+    return res.status(200).json({ csv: csvString, stats: stats });
 
   } catch (err) {
     console.error('Process Leads Error:', err);

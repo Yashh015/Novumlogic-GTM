@@ -887,8 +887,10 @@
                             throw new Error(err.error || 'Failed to process leads');
                         }
                         
+                        const result = await response.json();
+                        
                         // Download the resulting CSV
-                        const blob = await response.blob();
+                        const blob = new Blob([result.csv], { type: 'text/csv' });
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
@@ -898,8 +900,24 @@
                         a.remove();
                         window.URL.revokeObjectURL(url);
                         
-                        statusEl.textContent = "Success! Clean CSV downloaded. Database updated.";
-                        statusEl.style.color = "green";
+                        // Display Detailed Stats
+                        const duplicatesSkipped = result.stats.withEmails - result.stats.blocked - result.stats.finalExported;
+                        const statsHtml = `
+                            <div style="margin-top: 24px; padding: 24px; background: var(--color-white); border: 1px solid var(--color-stone-mist); border-radius: var(--radius-buttons); text-align: left;">
+                                <h4 style="margin-bottom: 16px; color: var(--color-midnight-ink); font-size: 16px;">Processing Summary</h4>
+                                <ul style="list-style: none; padding: 0; margin: 0; font-size: 14px; color: var(--color-smoke); line-height: 1.8;">
+                                    <li><b style="color: var(--color-midnight-ink);">Total Rows Uploaded:</b> ${result.stats.totalUploaded}</li>
+                                    <li><b style="color: var(--color-midnight-ink);">Missing Emails:</b> ${result.stats.withoutEmails} <span style="font-size: 12px;">(Saved to Supabase backlog)</span></li>
+                                    <li><b style="color: var(--color-midnight-ink);">Duplicates Skipped:</b> ${duplicatesSkipped > 0 ? duplicatesSkipped : 0} <span style="font-size: 12px;">(Max 2 per company rule)</span></li>
+                                    <li><b style="color: #e11d48;">Blocked (Blacklist/Sent):</b> ${result.stats.blocked} <span style="font-size: 12px;">(Filtered out)</span></li>
+                                    <li style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--color-stone-mist); font-size: 16px; color: var(--color-deep-forest-teal); font-weight: 600;">
+                                        Final Exported for Smartlead: ${result.stats.finalExported} leads
+                                    </li>
+                                </ul>
+                            </div>
+                        `;
+                        
+                        statusEl.innerHTML = `<span style="color: var(--color-deep-forest-teal); font-weight: 600;">Success! Clean CSV downloaded.</span>` + statsHtml;
                     } catch (error) {
                         statusEl.textContent = "Error: " + error.message;
                         statusEl.style.color = "red";
