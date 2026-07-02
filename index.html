@@ -534,6 +534,7 @@
             <button class="nav-item" onclick="switchTab('tab-smartlead')">Smartlead</button>
             <button class="nav-item" onclick="switchTab('tab-future')">Future Leads</button>
             <button class="nav-item" onclick="switchTab('tab-upload')">Upload Leads</button>
+            <button class="nav-item" onclick="switchTab('tab-logs')">Activity Logs</button>
         </nav>
     </div>
 
@@ -953,6 +954,34 @@
         </div>
     </main>
 
+    <!-- TAB: LOGS -->
+    <main id="tab-logs" class="tab-content container section-light">
+        <h1 class="display-title"><span>Activity</span> Logs</h1>
+        <p class="subheading" style="margin-bottom: 48px;">Complete audit trail of all dashboard activities.</p>
+        
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
+            <button class="btn-ghost" onclick="fetchLogs()">Refresh Logs</button>
+        </div>
+
+        <div class="table-container">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Action</th>
+                            <th>Status</th>
+                            <th>Summary</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                        <tr><td colspan="4" style="text-align: center; padding: 32px; color: var(--color-smoke);">Loading logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
     <script>
         let globalFinalLeads = [];
         let globalSelectedCampaign = "";
@@ -973,6 +1002,7 @@
         
         function downloadCSVGlobal() {
             downloadCSV(globalCsvString);
+            addLog('DOWNLOAD', 'SUCCESS', `Downloaded review CSV with ${globalFinalLeads.length} leads`);
         }
 
         async function loadCampaignsIfNeeded() {
@@ -1068,7 +1098,9 @@
                         
                         if (mode === 'download') {
                             downloadCSV(result.csv);
-                            statusEl.insertAdjacentHTML('afterbegin', `<span style="color: var(--color-deep-forest-teal); font-weight: 600; display:block; margin-bottom:12px;">Success! Clean CSV downloaded.</span>`);
+                            statusEl.insertAdjacentHTML('afterbegin', `<span style="color: green;">✅ Successfully cleaned and downloaded ${result.stats.totalRows} leads!</span><br>`);
+                            addLog('DOWNLOAD', 'SUCCESS', `Cleaned and downloaded ${result.stats.totalRows} leads directly`);
+                            return;
                         } else if (mode === 'direct') {
                             if (!globalSelectedCampaign) {
                                 statusEl.insertAdjacentHTML('afterbegin', `<span style="color: #e11d48; font-weight: 600; display:block; margin-bottom:12px;">Error: You must select a Target Campaign for Direct Upload.</span>`);
@@ -1147,47 +1179,6 @@
         }
 
         async function confirmPushToSmartlead(isAuto = false) {
-            const statusNode = isAuto ? document.getElementById('uploadStatus') : document.getElementById('previewPushStatus');
-            const btn = isAuto ? null : document.querySelector('#previewSection .btn-primary');
-            
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = "Pushing to Smartlead API...";
-            }
-            if (statusNode && !isAuto) statusNode.innerHTML = `<span style="color: var(--color-midnight-ink);">Pushing to Smartlead API...</span>`;
-            
-            if (!globalSelectedCampaign) {
-                const msg = `<span style="color: #e11d48;">Error: No Target Campaign selected.</span>`;
-                if (statusNode) {
-                     if (isAuto) statusNode.insertAdjacentHTML('afterbegin', msg + '<br>');
-                     else statusNode.innerHTML = msg;
-                }
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = "Push to Smartlead";
-                }
-                return;
-            }
-            
-            try {
-                const pwd = localStorage.getItem('dashboardPwd');
-                const response = await fetch('/api/push-to-smartlead', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-dashboard-auth': pwd || '' },
-                    body: JSON.stringify({ campaignId: globalSelectedCampaign, leads: globalFinalLeads })
-                });
-                
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.error || 'API Push Failed');
-                }
-                
-                const successMsg = `<span style="color: green; font-weight: 600;">✅ Successfully pushed ${globalFinalLeads.length} leads directly to the campaign! Verification skipped.</span>`;
-                if (statusNode) {
-                    if (isAuto) statusNode.insertAdjacentHTML('afterbegin', successMsg + '<br>');
-                    else statusNode.innerHTML = successMsg;
-                }
-        async function confirmPushToSmartlead(isAuto = false) {
             if (!window.confirm(`Are you sure you want to push ${globalFinalLeads.length} leads directly to Smartlead?\n\nThis action cannot be undone.`)) {
                 return;
             }
@@ -1250,6 +1241,7 @@
                     if (isAuto) statusNode.insertAdjacentHTML('afterbegin', successMsg + '<br>');
                     else statusNode.innerHTML = successMsg;
                 }
+                addLog('UPLOAD', 'SUCCESS', `Pushed ${globalFinalLeads.length} leads to campaign ${globalSelectedCampaign}`);
             } catch (error) {
                 if (btn) {
                     btn.disabled = false;
@@ -1272,6 +1264,7 @@
                     if (isAuto) statusNode.insertAdjacentHTML('afterbegin', errorHtml);
                     else statusNode.innerHTML = errorHtml;
                 }
+                addLog('UPLOAD', 'ERROR', `Failed to push ${globalFinalLeads.length} leads: ${error.message}`);
             }
         }
     </script>
@@ -1285,6 +1278,50 @@
         let pplState = { data: [], page: 1 };
         let slState = { data: [], page: 1, baseData: [] };
         let futState = { data: [], page: 1 };
+
+        async function addLog(actionType, status, summary, details = {}) {
+            try {
+                const pwd = localStorage.getItem('dashboardPwd');
+                await fetch('/api/log-action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-dashboard-auth': pwd },
+                    body: JSON.stringify({ action_type: actionType, status, summary, details })
+                });
+            } catch (e) {
+                console.error('Failed to log action', e);
+            }
+        }
+        
+        async function fetchLogs() {
+            try {
+                const pwd = localStorage.getItem('dashboardPwd');
+                const res = await fetch('/api/get-logs', {
+                    headers: { 'x-dashboard-auth': pwd }
+                });
+                const data = await res.json();
+                
+                const tbody = document.getElementById('logsTableBody');
+                if (data.logs && data.logs.length > 0) {
+                    tbody.innerHTML = data.logs.map(log => `
+                        <tr>
+                            <td style="white-space: nowrap; color: var(--color-graphite-veil);">${new Date(log.created_at).toLocaleString()}</td>
+                            <td style="font-weight: 500;">${log.action_type}</td>
+                            <td>
+                                <span class="badge ${log.status === 'SUCCESS' ? 'badge-green' : (log.status === 'ERROR' ? 'badge-red' : 'badge-gray')}">
+                                    ${log.status}
+                                </span>
+                            </td>
+                            <td style="color: var(--color-midnight-ink);">${log.summary}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 32px; color: var(--color-smoke);">No logs found or table doesn't exist yet.</td></tr>`;
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('logsTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 32px; color: red;">Error fetching logs.</td></tr>`;
+            }
+        }
 
         async function init() {
             try {
@@ -1321,9 +1358,6 @@
 
                 DATA = await res.json();
                 
-                // Removed the filter that hides leads with no name so we don't hide opened emails
-                // DATA.leads = DATA.leads.filter(l => (l.first_name || '').trim() !== '' || (l.last_name || '').trim() !== '');
-
                 // Format sources to remove 'raw_' prefix globally
                 DATA.leads.forEach(l => {
                     if (l.source) l.source = l.source.replace(/^raw_/, '');
@@ -1354,8 +1388,10 @@
                 filterFuture();
 
                 document.getElementById('loading').classList.add('hidden');
+                addLog('SYNC', 'SUCCESS', `Synced database (${DATA.leads.length} leads, ${DATA.companies.length} companies)`);
             } catch (e) {
                 document.getElementById('loading').textContent = 'Error: Please run export_dashboard_data.py first.';
+                addLog('SYNC', 'ERROR', `Failed to sync database: ${e.message}`);
             }
         }
 
@@ -1365,6 +1401,10 @@
             
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
+            
+            if (tabId === 'tab-logs') {
+                fetchLogs();
+            }
             
             if (tabId === 'tab-smartlead') {
                 document.body.style.backgroundColor = 'var(--color-midnight-ink)';
