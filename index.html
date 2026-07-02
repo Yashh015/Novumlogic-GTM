@@ -1987,41 +1987,6 @@
 
             // --- TOP ENGAGING JOB TITLES ---
             const engagedLeadsBasic = sentLeads.filter(l => ['opened','clicked','replied'].some(s => (l.sent_status||'').toLowerCase().includes(s)));
-            const titleMap = {};
-            engagedLeadsBasic.forEach(l => { if (l.job_title?.trim()) { const t = l.job_title.trim(); titleMap[t] = (titleMap[t]||0)+1; } });
-            const topTitles = Object.entries(titleMap).sort((a,b) => b[1]-a[1]).slice(0, 8);
-            const maxT = topTitles[0]?.[1] || 1;
-            document.getElementById('slTitleBars').innerHTML = topTitles.length
-                ? topTitles.map(([title, count]) => `
-                    <div style="margin-bottom:10px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span style="color:var(--color-white); font-size:13px; font-weight:500;">${title}</span>
-                            <span style="color:var(--color-graphite-veil); font-size:13px;">${count}</span>
-                        </div>
-                        <div style="background:var(--color-charcoal-mist); border-radius:4px; height:6px;">
-                            <div style="background: linear-gradient(90deg,#7c6fcd,#a78bfa); height:6px; border-radius:4px; width:${(count/maxT*100).toFixed(1)}%; transition: width 0.4s;"></div>
-                        </div>
-                    </div>`).join('')
-                : '<p style="color:var(--color-graphite-veil); font-size:13px;">Webhook data will populate this once leads engage.</p>';
-
-            // --- TOP ENGAGING COMPANIES ---
-            const companyMap = {};
-            engagedLeadsBasic.forEach(l => { if (l.mapped_domain?.trim()) { const d = l.mapped_domain.trim(); companyMap[d] = (companyMap[d]||0)+1; } });
-            const topCompanies = Object.entries(companyMap).sort((a,b) => b[1]-a[1]).slice(0, 8);
-            const maxC = topCompanies[0]?.[1] || 1;
-            document.getElementById('slCompanyBars').innerHTML = topCompanies.length
-                ? topCompanies.map(([domain, count]) => `
-                    <div style="margin-bottom:10px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span style="color:var(--color-white); font-size:13px; font-weight:500;">${domain}</span>
-                            <span style="color:var(--color-graphite-veil); font-size:13px;">${count}</span>
-                        </div>
-                        <div style="background:var(--color-charcoal-mist); border-radius:4px; height:6px;">
-                            <div style="background: linear-gradient(90deg,#2a9d8f,#52c9ba); height:6px; border-radius:4px; width:${(count/maxC*100).toFixed(1)}%; transition: width 0.4s;"></div>
-                        </div>
-                    </div>`).join('')
-                : '<p style="color:var(--color-graphite-veil); font-size:13px;">Webhook data will populate this once leads engage.</p>';
-
             // --- STATUS DISTRIBUTION BAR CHART ---
             const statusMap = {};
             sentLeads.forEach(l => { const s = l.sent_status || 'Unknown'; statusMap[s] = (statusMap[s]||0)+1; });
