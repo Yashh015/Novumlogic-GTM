@@ -1418,10 +1418,23 @@
             const revs = new Set();
             
             DATA.companies.forEach(c => { 
-                if(c.industry) inds.add(c.industry.trim()); 
                 if(c.employee_count) emps.add(getEmpBucket(c.employee_count));
                 if(c.annual_revenue) revs.add(getRevBucket(c.annual_revenue));
             });
+            
+            const initialIndCounts = {};
+            DATA.companies.forEach(c => {
+                const ind = (c.industry||'').trim();
+                if (ind) initialIndCounts[ind] = (initialIndCounts[ind] || 0) + 1;
+            });
+            
+            const sortedInitialInds = Object.keys(initialIndCounts)
+                .map(k => ({ name: k, count: initialIndCounts[k] }))
+                .sort((a, b) => b.count - a.count);
+                
+            document.getElementById('compIndustrySide').innerHTML = sortedInitialInds.map(ind => 
+                `<label class="checkbox-item"><input type="checkbox" value="${ind.name.toLowerCase()}" onchange="syncAndFilterCompanies('side')"> ${ind.name} <span style="color:var(--color-smoke); font-size:12px;">(${ind.count})</span></label>`
+            ).join('');
             
             const renderChecks = (setObj, id) => {
                 const arr = [...setObj].sort();
@@ -1429,9 +1442,6 @@
                     `<label class="checkbox-item"><input type="checkbox" value="${v.toLowerCase()}" onchange="syncAndFilterCompanies('side')"> ${v}</label>`
                 ).join('');
             };
-
-            renderChecks(inds, 'compIndustrySide');
-            
             const empOrder = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+', 'Unknown'];
             document.getElementById('compEmployeeSide').innerHTML = empOrder.filter(x => emps.has(x)).map(v => 
                 `<label class="checkbox-item"><input type="checkbox" value="${v.toLowerCase()}" onchange="syncAndFilterCompanies('side')"> ${v}</label>`
@@ -1491,6 +1501,34 @@
             const inds = getChecked('compIndustrySide');
             const emps = getChecked('compEmployeeSide');
             const revs = getChecked('compRevenueSide');
+
+            // Dynamic Industry Facet Counts
+            const baseDataForIndustry = DATA.companies.filter(c => {
+                if (search && !(c.mapped_company_name||'').toLowerCase().includes(search) && !(c.mapped_domain||'').toLowerCase().includes(search)) return false;
+                if (kw && !(c.website_keywords||'').toLowerCase().includes(kw)) return false;
+                if (cov === 'has_emails' && (!c.leads_with_emails || c.leads_with_emails === 0)) return false;
+                if (sent === 'not_sent' && (c.already_sent > 0)) return false;
+                if (sent === 'sent' && (!c.already_sent || c.already_sent === 0)) return false;
+                if (emps.length > 0 && !emps.includes(getEmpBucket(c.employee_count).toLowerCase())) return false;
+                if (revs.length > 0 && !revs.includes(getRevBucket(c.annual_revenue).toLowerCase())) return false;
+                return true;
+            });
+            
+            const indCounts = {};
+            baseDataForIndustry.forEach(c => {
+                const ind = (c.industry||'').trim();
+                if (ind) indCounts[ind] = (indCounts[ind] || 0) + 1;
+            });
+            
+            const sortedInds = Object.keys(indCounts)
+                .map(k => ({ name: k, count: indCounts[k] }))
+                .sort((a, b) => b.count - a.count);
+                
+            document.getElementById('compIndustrySide').innerHTML = sortedInds.map(ind => {
+                const isChecked = inds.includes(ind.name.toLowerCase()) ? 'checked' : '';
+                return `<label class="checkbox-item"><input type="checkbox" value="${ind.name.toLowerCase()}" onchange="syncAndFilterCompanies('side')" ${isChecked}> ${ind.name} <span style="color:var(--color-smoke); font-size:12px;">(${ind.count})</span></label>`;
+            }).join('');
+            // End Dynamic Industry Facet Counts
 
             const isFiltered = search !== '' || kw !== '' || cov !== '' || sent !== '' || inds.length > 0 || emps.length > 0 || revs.length > 0;
             
