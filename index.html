@@ -77,7 +77,6 @@
             color: var(--color-midnight-ink);
         }
         .display-title {
-            font-family: var(--font-eb-garamond);
             font-size: 64px;
             font-weight: 400;
             line-height: 0.95;
@@ -264,7 +263,6 @@
         }
         .stat-card-value {
             font-size: 40px;
-            font-family: var(--font-eb-garamond);
             line-height: 1;
             color: var(--color-midnight-ink);
         }
@@ -418,7 +416,6 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            font-family: var(--font-eb-garamond);
             font-size: 32px;
             color: var(--color-midnight-ink);
             transition: opacity 0.5s;
@@ -771,19 +768,6 @@
                 </div>
             </div>
 
-            <!-- ENGAGEMENT ANALYTICS: 2 column grid -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
-                <!-- Top Engaging Job Titles -->
-                <div style="background: var(--color-charcoal); border: 1px solid var(--color-charcoal-mist); border-radius: var(--radius-cards); padding: 24px;">
-                    <h3 style="color: var(--color-white); font-size: 16px; font-weight: 600; margin-bottom: 20px;">🎯 Top Engaging Job Titles</h3>
-                    <div id="slTitleBars"></div>
-                </div>
-                <!-- Top Engaging Companies -->
-                <div style="background: var(--color-charcoal); border: 1px solid var(--color-charcoal-mist); border-radius: var(--radius-cards); padding: 24px;">
-                    <h3 style="color: var(--color-white); font-size: 16px; font-weight: 600; margin-bottom: 20px;">🏢 Top Engaging Companies</h3>
-                    <div id="slCompanyBars"></div>
-                </div>
-            </div>
 
             <!-- STATUS DISTRIBUTION -->
             <div style="background: var(--color-charcoal); border: 1px solid var(--color-charcoal-mist); border-radius: var(--radius-cards); padding: 24px; margin-bottom: 32px;">
@@ -1923,10 +1907,10 @@
                             <div>
                                 <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
                                     <span style="color: var(--color-stone-mist); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;" title="${item.name}">${item.name}</span>
-                                    <span style="color: var(--color-deep-forest-teal); font-weight: 600;">${pct}% <span style="color: var(--color-smoke); font-weight: normal; font-size: 11px;">(${item.count})</span></span>
+                                    <span style="color: #2a9d8f; font-weight: 600;">${pct}% <span style="color: var(--color-smoke); font-weight: normal; font-size: 11px;">(${item.count})</span></span>
                                 </div>
                                 <div style="width: 100%; height: 6px; background: var(--color-charcoal-mist); border-radius: 3px; overflow: hidden;">
-                                    <div style="width: ${pct}%; height: 100%; background: var(--color-deep-forest-teal);"></div>
+                                    <div style="width: ${pct}%; height: 100%; background: #2a9d8f;"></div>
                                 </div>
                             </div>
                         `;
