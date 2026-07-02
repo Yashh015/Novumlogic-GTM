@@ -1880,29 +1880,29 @@
             });
 
             engagedLeads.forEach(l => {
-                const p = getPersonaBucket(l.job_title);
-                if (p && p !== 'Unknown') {
-                    perCounts[p] = (perCounts[p] || 0) + 1;
-                }
+                const p = getPersonaBucket(l.job_title) || 'Unknown';
+                perCounts[p] = (perCounts[p] || 0) + 1;
 
                 if (l.mapped_domain) {
                     const comp = domainToCompany[l.mapped_domain.toLowerCase()];
                     if (comp) {
-                        const ind = comp.industry;
-                        if (ind && ind.trim() !== '' && ind !== 'Unknown') {
-                            indCounts[ind] = (indCounts[ind] || 0) + 1;
-                        }
+                        const ind = comp.industry || 'Unknown';
+                        indCounts[ind] = (indCounts[ind] || 0) + 1;
 
-                        const emp = getEmpBucket(comp.employee_count);
-                        if (emp && emp !== 'Unknown') {
-                            empCounts[emp] = (empCounts[emp] || 0) + 1;
-                        }
+                        const emp = getEmpBucket(comp.employee_count) || 'Unknown';
+                        empCounts[emp] = (empCounts[emp] || 0) + 1;
 
-                        const rev = getRevBucket(comp.annual_revenue);
-                        if (rev && rev !== 'Unknown') {
-                            revCounts[rev] = (revCounts[rev] || 0) + 1;
-                        }
+                        const rev = getRevBucket(comp.annual_revenue) || 'Unknown';
+                        revCounts[rev] = (revCounts[rev] || 0) + 1;
+                    } else {
+                        indCounts['Unknown'] = (indCounts['Unknown'] || 0) + 1;
+                        empCounts['Unknown'] = (empCounts['Unknown'] || 0) + 1;
+                        revCounts['Unknown'] = (revCounts['Unknown'] || 0) + 1;
                     }
+                } else {
+                    indCounts['Unknown'] = (indCounts['Unknown'] || 0) + 1;
+                    empCounts['Unknown'] = (empCounts['Unknown'] || 0) + 1;
+                    revCounts['Unknown'] = (revCounts['Unknown'] || 0) + 1;
                 }
             });
 
