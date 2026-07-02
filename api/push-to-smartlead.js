@@ -3,6 +3,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || 'Novum2026';
+  const authHeader = req.headers['x-dashboard-auth'];
+  if (authHeader !== DASHBOARD_PASSWORD) {
+    return res.status(401).json({ error: "Unauthorized. Incorrect password." });
+  }
+
   const SMARTLEAD_API_KEY = process.env.SMARTLEAD_API_KEY;
   if (!SMARTLEAD_API_KEY) {
     return res.status(500).json({ error: 'Missing Smartlead API Key in Vercel environment' });

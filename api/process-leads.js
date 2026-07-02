@@ -3,6 +3,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || 'Novum2026';
+  const authHeader = req.headers['x-dashboard-auth'];
+  if (authHeader !== DASHBOARD_PASSWORD) {
+    return res.status(401).json({ error: "Unauthorized. Incorrect password." });
+  }
+
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
