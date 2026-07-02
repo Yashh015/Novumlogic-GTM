@@ -50,7 +50,29 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Typography */
+        /* Progress Bar Animation */
+        @keyframes indeterminate {
+            0% { transform: translateX(-100%); width: 50%; }
+            100% { transform: translateX(200%); width: 50%; }
+        }
+        
+        .progress-bar-container {
+            width: 100%; 
+            height: 6px; 
+            background-color: var(--color-stone-mist); 
+            border-radius: 4px; 
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .progress-bar-animated {
+            height: 100%; 
+            background-color: var(--color-deep-forest-teal); 
+            animation: indeterminate 1.5s infinite linear; 
+            border-radius: 4px;
+        }
+        
+        /* Typography Elements */
         h1, h2, h3, h4, h5, h6 {
             color: var(--color-midnight-ink);
         }
@@ -846,6 +868,21 @@
                 </div>
             </div>
             
+            <div style="margin-bottom: 24px; text-align: left; background: var(--color-stone-mist); padding: 16px; border-radius: var(--radius-buttons);">
+                <label style="display: block; margin-bottom: 12px; font-weight: 600; font-size: 14px; color: var(--color-midnight-ink);">Action Mode</label>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 14px; cursor: pointer; color: var(--color-midnight-ink);">
+                        <input type="radio" name="actionMode" value="direct" checked> <b>Direct Upload:</b> Process & instantly push to Smartlead
+                    </label>
+                    <label style="font-size: 14px; cursor: pointer; color: var(--color-midnight-ink);">
+                        <input type="radio" name="actionMode" value="review"> <b>Review & Confirm:</b> Preview leads in a table before pushing
+                    </label>
+                    <label style="font-size: 14px; cursor: pointer; color: var(--color-midnight-ink);">
+                        <input type="radio" name="actionMode" value="download"> <b>Download CSV Only:</b> Process & download file (no API push)
+                    </label>
+                </div>
+            </div>
+            
             <div style="margin-bottom: 24px; border: 2px dashed var(--color-stone-mist); border-radius: var(--radius-buttons); padding: 48px; background: var(--color-cream-paper);">
                 <input type="file" id="uploadFile" accept=".csv" style="display: none;" onchange="document.getElementById('fileNameDisplay').textContent = this.files[0]?.name || 'No file selected'">
                 <button class="btn-ghost" onclick="document.getElementById('uploadFile').click()">Choose CSV File</button>
@@ -860,8 +897,25 @@
     <script>
         let globalFinalLeads = [];
         let globalSelectedCampaign = "";
+        let globalCsvString = "";
         let campaignsLoaded = false;
         
+        function downloadCSV(csvString) {
+            const blob = new Blob([csvString], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "SMARTLEAD_READY_" + new Date().toISOString().split('T')[0] + ".csv";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function downloadCSVGlobal() {
+            downloadCSV(globalCsvString);
+        }
+
         async function loadCampaignsIfNeeded() {
             if (campaignsLoaded) return;
             try {
@@ -930,21 +984,11 @@
                         
                         const result = await response.json();
                         
-                        // Download the resulting CSV
-                        const blob = new Blob([result.csv], { type: 'text/csv' });
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = "SMARTLEAD_READY_" + new Date().toISOString().split('T')[0] + ".csv";
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        window.URL.revokeObjectURL(url);
-                        
                         globalFinalLeads = result.finalLeads || [];
                         globalSelectedCampaign = document.getElementById('targetCampaign').value;
+                        globalCsvString = result.csv;
+                        const mode = document.querySelector('input[name="actionMode"]:checked').value;
 
-                        // Display Detailed Stats
                         const duplicatesSkipped = result.stats.withEmails - result.stats.blocked - result.stats.finalExported;
                         let statsHtml = `
                             <div style="margin-top: 24px; padding: 24px; background: var(--color-white); border: 1px solid var(--color-stone-mist); border-radius: var(--radius-buttons); text-align: left;">
@@ -958,50 +1002,119 @@
                                         Final Exported for Smartlead: ${result.stats.finalExported} leads
                                     </li>
                                 </ul>
+                            </div>
                         `;
                         
-                        if (globalSelectedCampaign && result.stats.finalExported > 0) {
-                            statsHtml += `
-                                <div id="confirmPushSection" style="margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--color-stone-mist);">
-                                    <p style="margin-bottom: 16px; font-size: 14px; color: var(--color-midnight-ink); font-weight: 500;">Ready to push ${result.stats.finalExported} leads directly to the selected Smartlead campaign?</p>
-                                    <button class="btn-primary" style="width: 100%; padding: 12px; font-size: 14px; background: var(--color-deep-forest-teal);" onclick="confirmPushToSmartlead()">Confirm & Push to API</button>
-                                </div>
-                            `;
+                        statusEl.innerHTML = statsHtml;
+                        
+                        if (mode === 'download') {
+                            downloadCSV(result.csv);
+                            statusEl.insertAdjacentHTML('afterbegin', `<span style="color: var(--color-deep-forest-teal); font-weight: 600; display:block; margin-bottom:12px;">Success! Clean CSV downloaded.</span>`);
+                        } else if (mode === 'direct') {
+                            if (!globalSelectedCampaign) {
+                                statusEl.insertAdjacentHTML('afterbegin', `<span style="color: #e11d48; font-weight: 600; display:block; margin-bottom:12px;">Error: You must select a Target Campaign for Direct Upload.</span>`);
+                            } else if (result.stats.finalExported > 0) {
+                                statusEl.insertAdjacentHTML('afterbegin', `<span style="color: var(--color-midnight-ink); font-weight: 600; display:block; margin-bottom:12px;">Processing complete. Preparing to push to Smartlead...</span>`);
+                                setTimeout(() => confirmPushToSmartlead(true), 100);
+                            }
+                        } else if (mode === 'review') {
+                            statusEl.insertAdjacentHTML('afterbegin', `<span style="color: var(--color-deep-forest-teal); font-weight: 600; display:block; margin-bottom:12px;">Processing complete. Please review the leads below.</span>`);
+                            renderPreviewTable();
                         }
-                        
-                        statsHtml += `</div>`;
-                        
-                        statusEl.innerHTML = `<span style="color: var(--color-deep-forest-teal); font-weight: 600;">Success! Clean CSV downloaded.</span>` + statsHtml;
                     } catch (error) {
-                        statusEl.textContent = "Error: " + error.message;
-                        statusEl.style.color = "red";
+                        statusEl.innerHTML = `
+                            <div style="padding: 16px; background: #fee2e2; border: 1px solid #f87171; border-radius: 8px; color: #991b1b; text-align: left; margin-top: 16px;">
+                                <h4 style="margin-top: 0; font-size: 15px;">⚠️ Processing Error</h4>
+                                <p style="font-size: 14px; margin-bottom: 0;">${error.message}</p>
+                                <hr style="border-color: #fca5a5; margin: 12px 0;">
+                                <b style="font-size: 13px;">Next Steps:</b>
+                                <ul style="margin: 4px 0 0 0; padding-left: 20px; font-size: 13px;">
+                                    <li>Check your CSV format (Ensure it has headers like First Name, Email, Company).</li>
+                                    <li>If the file is too large, try splitting it into smaller files.</li>
+                                    <li>Check your internet connection and verify the Vercel backend is online.</li>
+                                </ul>
+                            </div>
+                        `;
                     } finally {
                         btn.disabled = false;
                     }
                 },
                 error: function(err) {
-                    statusEl.textContent = "Failed to parse CSV: " + err.message;
-                    statusEl.style.color = "red";
+                    statusEl.innerHTML = `
+                        <div style="padding: 16px; background: #fee2e2; border: 1px solid #f87171; border-radius: 8px; color: #991b1b; text-align: left; margin-top: 16px;">
+                            <h4 style="margin-top: 0; font-size: 15px;">⚠️ File Reading Error</h4>
+                            <p style="font-size: 14px; margin-bottom: 0;">Failed to parse CSV: ${err.message}</p>
+                        </div>
+                    `;
                     btn.disabled = false;
                 }
             });
         }
+        
+        function renderPreviewTable() {
+            let html = `
+                <div id="previewSection" style="margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--color-stone-mist); text-align: left;">
+                    <h4 style="margin-bottom: 16px; color: var(--color-midnight-ink); font-size: 16px;">Preview Valid Leads (${globalFinalLeads.length})</h4>
+                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--color-stone-mist); margin-bottom: 16px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                            <thead style="position: sticky; top: 0; background: var(--color-stone-mist);">
+                                <tr>
+                                    <th style="padding: 8px;">First Name</th>
+                                    <th style="padding: 8px;">Last Name</th>
+                                    <th style="padding: 8px;">Company</th>
+                                    <th style="padding: 8px;">Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${globalFinalLeads.map(l => `
+                                    <tr style="border-bottom: 1px solid #eee;">
+                                        <td style="padding: 8px;">${l['First Name'] || ''}</td>
+                                        <td style="padding: 8px;">${l['Last Name'] || ''}</td>
+                                        <td style="padding: 8px;">${l['Company'] || ''}</td>
+                                        <td style="padding: 8px;">${l.Email || ''}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn-primary" style="flex: 1; padding: 12px; font-size:14px; background: var(--color-deep-forest-teal);" onclick="confirmPushToSmartlead(false)">Push to Smartlead</button>
+                        <button class="btn-ghost" style="flex: 1; padding: 12px; font-size:14px;" onclick="downloadCSVGlobal()">Download CSV</button>
+                    </div>
+                    <div id="previewPushStatus" style="margin-top: 16px; font-weight: 500;"></div>
+                </div>
+            `;
+            document.getElementById('uploadStatus').insertAdjacentHTML('beforeend', html);
+        }
 
-        async function confirmPushToSmartlead() {
-            const btn = document.querySelector('#confirmPushSection button');
-            if (!btn) return;
+        async function confirmPushToSmartlead(isAuto = false) {
+            const statusNode = isAuto ? document.getElementById('uploadStatus') : document.getElementById('previewPushStatus');
+            const btn = isAuto ? null : document.querySelector('#previewSection .btn-primary');
             
-            btn.disabled = true;
-            btn.textContent = "Pushing to Smartlead API...";
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Pushing to Smartlead API...";
+            }
+            if (statusNode && !isAuto) statusNode.innerHTML = `<span style="color: var(--color-midnight-ink);">Pushing to Smartlead API...</span>`;
+            
+            if (!globalSelectedCampaign) {
+                const msg = `<span style="color: #e11d48;">Error: No Target Campaign selected.</span>`;
+                if (statusNode) {
+                     if (isAuto) statusNode.insertAdjacentHTML('afterbegin', msg + '<br>');
+                     else statusNode.innerHTML = msg;
+                }
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "Push to Smartlead";
+                }
+                return;
+            }
             
             try {
                 const pwd = localStorage.getItem('dashboardPwd');
                 const response = await fetch('/api/push-to-smartlead', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-dashboard-auth': pwd || ''
-                    },
+                    headers: { 'Content-Type': 'application/json', 'x-dashboard-auth': pwd || '' },
                     body: JSON.stringify({ campaignId: globalSelectedCampaign, leads: globalFinalLeads })
                 });
                 
@@ -1010,16 +1123,96 @@
                     throw new Error(err.error || 'API Push Failed');
                 }
                 
-                document.getElementById('confirmPushSection').innerHTML = `<p style="color: green; font-weight: 600;">✅ Successfully pushed ${globalFinalLeads.length} leads directly to the campaign! Verification skipped.</p>`;
+                const successMsg = `<span style="color: green; font-weight: 600;">✅ Successfully pushed ${globalFinalLeads.length} leads directly to the campaign! Verification skipped.</span>`;
+                if (statusNode) {
+                    if (isAuto) statusNode.insertAdjacentHTML('afterbegin', successMsg + '<br>');
+                    else statusNode.innerHTML = successMsg;
+                }
+        async function confirmPushToSmartlead(isAuto = false) {
+            if (!window.confirm(`Are you sure you want to push ${globalFinalLeads.length} leads directly to Smartlead?\n\nThis action cannot be undone.`)) {
+                return;
+            }
+
+            const statusNode = isAuto ? document.getElementById('uploadStatus') : document.getElementById('previewPushStatus');
+            const btn = isAuto ? null : document.querySelector('#previewSection .btn-primary');
+            
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Pushing to Smartlead API...";
+            }
+            
+            const loaderHtml = `
+                <div id="pushLoader" style="margin: 12px 0; font-weight: 500; color: var(--color-midnight-ink);">
+                    <div>📡 Syncing with Smartlead API...</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-animated"></div>
+                    </div>
+                </div>
+            `;
+            
+            if (statusNode && !isAuto) {
+                statusNode.innerHTML = loaderHtml;
+            } else if (statusNode && isAuto) {
+                statusNode.insertAdjacentHTML('afterbegin', loaderHtml);
+            }
+            
+            if (!globalSelectedCampaign) {
+                const msg = `<span style="color: #e11d48;">Error: No Target Campaign selected.</span>`;
+                if (statusNode) {
+                     const loader = document.getElementById('pushLoader');
+                     if (loader) loader.remove();
+                     if (isAuto) statusNode.insertAdjacentHTML('afterbegin', msg + '<br>');
+                     else statusNode.innerHTML = msg;
+                }
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "Push to Smartlead";
+                }
+                return;
+            }
+            
+            try {
+                const pwd = localStorage.getItem('dashboardPwd');
+                const response = await fetch('/api/push-to-smartlead', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-dashboard-auth': pwd || '' },
+                    body: JSON.stringify({ campaignId: globalSelectedCampaign, leads: globalFinalLeads })
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'API Push Failed');
+                }
+                
+                const successMsg = `<span style="color: green; font-weight: 600;">✅ Successfully pushed ${globalFinalLeads.length} leads directly to the campaign! Verification skipped.</span>`;
+                if (statusNode) {
+                    const loader = document.getElementById('pushLoader');
+                    if (loader) loader.remove();
+                    if (isAuto) statusNode.insertAdjacentHTML('afterbegin', successMsg + '<br>');
+                    else statusNode.innerHTML = successMsg;
+                }
             } catch (error) {
-                btn.disabled = false;
-                btn.textContent = "Try Again";
-                const errorMsg = document.createElement('p');
-                errorMsg.style.color = "red";
-                errorMsg.style.fontSize = "12px";
-                errorMsg.style.marginTop = "8px";
-                errorMsg.textContent = `Error: ${error.message}`;
-                btn.parentNode.appendChild(errorMsg);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "Try Again";
+                }
+                const errorHtml = `
+                    <div style="margin-top: 16px; padding: 12px; background: #fee2e2; border: 1px solid #f87171; border-radius: 6px; color: #991b1b; text-align: left; font-size: 13px;">
+                        <b>⚠️ Smartlead API Error:</b> ${error.message}<br><br>
+                        <b>Next Steps:</b>
+                        <ul style="margin-top: 8px; padding-left: 16px; margin-bottom: 0;">
+                            <li>Click <b>Download CSV</b> instead and upload it to Smartlead manually.</li>
+                            <li>Check if the selected campaign was paused or deleted in Smartlead.</li>
+                            <li>Try clicking "Try Again" in a few seconds.</li>
+                        </ul>
+                    </div>
+                `;
+                if (statusNode) {
+                    const loader = document.getElementById('pushLoader');
+                    if (loader) loader.remove();
+                    if (isAuto) statusNode.insertAdjacentHTML('afterbegin', errorHtml);
+                    else statusNode.innerHTML = errorHtml;
+                }
             }
         }
     </script>
