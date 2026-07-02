@@ -1994,9 +1994,9 @@
             document.getElementById('slCampaignCards').innerHTML = campaignCards || '<p style="color:var(--color-graphite-veil)">No campaign data yet.</p>';
 
             // --- TOP ENGAGING JOB TITLES ---
-            const engagedLeads = sentLeads.filter(l => ['opened','clicked','replied'].some(s => (l.sent_status||'').toLowerCase().includes(s)));
+            const engagedLeadsBasic = sentLeads.filter(l => ['opened','clicked','replied'].some(s => (l.sent_status||'').toLowerCase().includes(s)));
             const titleMap = {};
-            engagedLeads.forEach(l => { if (l.job_title?.trim()) { const t = l.job_title.trim(); titleMap[t] = (titleMap[t]||0)+1; } });
+            engagedLeadsBasic.forEach(l => { if (l.job_title?.trim()) { const t = l.job_title.trim(); titleMap[t] = (titleMap[t]||0)+1; } });
             const topTitles = Object.entries(titleMap).sort((a,b) => b[1]-a[1]).slice(0, 8);
             const maxT = topTitles[0]?.[1] || 1;
             document.getElementById('slTitleBars').innerHTML = topTitles.length
@@ -2014,7 +2014,7 @@
 
             // --- TOP ENGAGING COMPANIES ---
             const companyMap = {};
-            engagedLeads.forEach(l => { if (l.mapped_domain?.trim()) { const d = l.mapped_domain.trim(); companyMap[d] = (companyMap[d]||0)+1; } });
+            engagedLeadsBasic.forEach(l => { if (l.mapped_domain?.trim()) { const d = l.mapped_domain.trim(); companyMap[d] = (companyMap[d]||0)+1; } });
             const topCompanies = Object.entries(companyMap).sort((a,b) => b[1]-a[1]).slice(0, 8);
             const maxC = topCompanies[0]?.[1] || 1;
             document.getElementById('slCompanyBars').innerHTML = topCompanies.length
