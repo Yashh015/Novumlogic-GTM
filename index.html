@@ -821,8 +821,11 @@
         <h1 class="display-title"><span>Future</span> Pipelines</h1>
         <p class="subheading" style="margin-bottom: 48px;">Safe, pre-filtered leads ready for your next campaign (Excludes Blacklist & Already Contacted).</p>
         
-        <div class="filters-bar">
-            <input type="text" id="futSearch" class="filter-input" style="width:300px" placeholder="Search ready leads..." oninput="filterFuture()">
+        <div class="filters-bar" style="display: flex; gap: 16px; margin-bottom: 24px;">
+            <input type="text" id="futSearch" class="filter-input" style="width: 300px;" placeholder="Search name or email..." oninput="filterFuture()">
+            <input type="text" id="futJobTitle" class="filter-input" style="width: 250px;" placeholder="Job Title keywords (e.g. CEO, Sales)..." oninput="filterFuture()">
+            <input type="text" id="futDomain" class="filter-input" style="width: 250px;" placeholder="Company Domain..." oninput="filterFuture()">
+            <button class="btn-ghost" onclick="document.getElementById('futSearch').value=''; document.getElementById('futJobTitle').value=''; document.getElementById('futDomain').value=''; filterFuture();">Clear Filters</button>
         </div>
 
         <div class="table-container">
@@ -1880,9 +1883,18 @@
         // --- FUTURE LEADS TAB ---
         function filterFuture() {
             const search = document.getElementById('futSearch').value.toLowerCase();
+            const jobTitle = document.getElementById('futJobTitle').value.toLowerCase();
+            const domain = document.getElementById('futDomain').value.toLowerCase();
+            
             futState.data = DATA.leads.filter(l => {
                 if (!l.has_email || l.already_sent || l.is_blacklisted) return false;
+                
                 if (search && !(l.first_name||'').toLowerCase().includes(search) && !(l.last_name||'').toLowerCase().includes(search) && !(l.mapped_email||'').toLowerCase().includes(search)) return false;
+                
+                if (jobTitle && !(l.job_title||'').toLowerCase().includes(jobTitle)) return false;
+                
+                if (domain && !(l.mapped_domain||'').toLowerCase().includes(domain)) return false;
+                
                 return true;
             });
             futState.page = 1;
